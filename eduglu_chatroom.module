@@ -1,0 +1,27 @@
+<?php
+
+include_once('eduglu_chatroom.features.inc');
+
+/**
+ * Implementation of hook_menu().
+ */
+function eduglu_chatroom_menu() {
+  $items = array();
+  $items['chatroom'] = array(
+    'title' => 'Chatroom',
+    'page callback' => 'eduglu_chatroom_init',
+    'page arguments' => array(),
+    'access callback' => 'spaces_access_feature',
+    'access arguments' => array('view', 'eduglu_chatroom'),
+    'type' => MENU_NORMAL_ITEM,
+    'menu_name' => 'features',
+  );
+  return $items;
+}
+
+function eduglu_chatroom_init() {
+  drupal_add_css(drupal_get_path('module', 'eduglu_chatroom') . '/brunch/build/web/css/main.css', 'module');
+  drupal_add_js(drupal_get_path('module', 'eduglu_chatroom') . '/brunch/build/web/js/app.js', 'module');
+  drupal_add_js("require('main')", 'inline');
+  return "connecting...";
+}
