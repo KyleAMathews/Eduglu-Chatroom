@@ -5,4 +5,5 @@ class exports.HomeView extends Backbone.View
 
   render: ->
     $(@el).html homeTemplate()
+    $(@el).append app.views.chatsView.render().el
     @

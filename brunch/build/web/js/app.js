@@ -2058,8 +2058,29 @@
     };
   }
   return this.require.define;
-}).call(this)({"main": function(exports, require, module) {(function() {
-  var HomeView, MainRouter;
+}).call(this)({"collections/chats": function(exports, require, module) {(function() {
+  var Chat;
+  var __hasProp = Object.prototype.hasOwnProperty, __extends = function(child, parent) {
+    for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; }
+    function ctor() { this.constructor = child; }
+    ctor.prototype = parent.prototype;
+    child.prototype = new ctor;
+    child.__super__ = parent.prototype;
+    return child;
+  };
+  Chat = require('models/chat').Chat;
+  exports.Chats = (function() {
+    __extends(Chats, Backbone.Collection);
+    function Chats() {
+      Chats.__super__.constructor.apply(this, arguments);
+    }
+    Chats.prototype.model = Chat;
+    Chats.prototype.url = '/chats';
+    return Chats;
+  })();
+}).call(this);
+}, "main": function(exports, require, module) {(function() {
+  var Chat, Chats, ChatsView, HomeView, MainRouter;
   window.app = {};
   app.routers = {};
   app.models = {};
@@ -2067,11 +2088,19 @@
   app.views = {};
   MainRouter = require('routers/main_router').MainRouter;
   HomeView = require('views/home_view').HomeView;
+  ChatsView = require('views/chats_view').ChatsView;
+  Chat = require('models/chat').Chat;
+  Chats = require('collections/chats').Chats;
   $(document).ready(function() {
     app.initialize = function() {
       app.routers.main = new MainRouter();
+      app.models.chat = Chat;
+      app.collections.chats = new Chats();
       app.views.home = new HomeView({
         el: '#main-content'
+      });
+      app.views.chatsView = new ChatsView({
+        collection: app.collections.chats
       });
       if (Backbone.history.getFragment() === '') {
         return app.routers.main.navigate('home', true);
@@ -2080,6 +2109,28 @@
     app.initialize();
     return Backbone.history.start();
   });
+}).call(this);
+}, "models/chat": function(exports, require, module) {(function() {
+  var __hasProp = Object.prototype.hasOwnProperty, __extends = function(child, parent) {
+    for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; }
+    function ctor() { this.constructor = child; }
+    ctor.prototype = parent.prototype;
+    child.prototype = new ctor;
+    child.__super__ = parent.prototype;
+    return child;
+  };
+  exports.Chat = (function() {
+    __extends(Chat, Backbone.Model);
+    function Chat() {
+      Chat.__super__.constructor.apply(this, arguments);
+    }
+    Chat.prototype.defaults = {
+      uid: 1,
+      body: "",
+      time: ""
+    };
+    return Chat;
+  })();
 }).call(this);
 }, "routers/main_router": function(exports, require, module) {(function() {
   var __hasProp = Object.prototype.hasOwnProperty, __extends = function(child, parent) {
@@ -2104,7 +2155,7 @@
     return MainRouter;
   })();
 }).call(this);
-}, "templates/home": function(exports, require, module) {module.exports = function(__obj) {
+}, "templates/chat": function(exports, require, module) {module.exports = function(__obj) {
   if (!__obj) __obj = {};
   var __out = [], __capture = function(callback) {
     var out = __out, result;
@@ -2143,13 +2194,131 @@
   }
   (function() {
     (function() {
-      __out.push('<div id="content">\n  <h1>Our lovely chatroom</h1>\n  <ul>\n    <li class=\'message\'>Hi!</li>\n    <li class=\'message\'>Hi!</li>\n    <li class=\'message\'>Hi!</li>\n  </ul>\n</div>\n');
+      __out.push(__sanitize(this.model.get('body')));
+      __out.push('\n');
     }).call(this);
     
   }).call(__obj);
   __obj.safe = __objSafe, __obj.escape = __escape;
   return __out.join('');
-}}, "views/home_view": function(exports, require, module) {(function() {
+}}, "templates/home": function(exports, require, module) {module.exports = function(__obj) {
+  if (!__obj) __obj = {};
+  var __out = [], __capture = function(callback) {
+    var out = __out, result;
+    __out = [];
+    callback.call(this);
+    result = __out.join('');
+    __out = out;
+    return __safe(result);
+  }, __sanitize = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else if (typeof value !== 'undefined' && value != null) {
+      return __escape(value);
+    } else {
+      return '';
+    }
+  }, __safe, __objSafe = __obj.safe, __escape = __obj.escape;
+  __safe = __obj.safe = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else {
+      if (!(typeof value !== 'undefined' && value != null)) value = '';
+      var result = new String(value);
+      result.ecoSafe = true;
+      return result;
+    }
+  };
+  if (!__escape) {
+    __escape = __obj.escape = function(value) {
+      return ('' + value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    };
+  }
+  (function() {
+    (function() {
+      __out.push('<h1>Our lovely chatroom</h1>\n');
+    }).call(this);
+    
+  }).call(__obj);
+  __obj.safe = __objSafe, __obj.escape = __escape;
+  return __out.join('');
+}}, "views/chat_view": function(exports, require, module) {(function() {
+  var chatTemplate;
+  var __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; }, __hasProp = Object.prototype.hasOwnProperty, __extends = function(child, parent) {
+    for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; }
+    function ctor() { this.constructor = child; }
+    ctor.prototype = parent.prototype;
+    child.prototype = new ctor;
+    child.__super__ = parent.prototype;
+    return child;
+  };
+  chatTemplate = require('templates/chat');
+  exports.ChatView = (function() {
+    __extends(ChatView, Backbone.View);
+    function ChatView() {
+      this.render = __bind(this.render, this);
+      ChatView.__super__.constructor.apply(this, arguments);
+    }
+    ChatView.prototype.className = 'chat';
+    ChatView.prototype.tagName = 'li';
+    ChatView.prototype.render = function() {
+      console.log($(this.el));
+      console.log(this.model);
+      $(this.el).html(chatTemplate({
+        model: this.model
+      }));
+      return this;
+    };
+    return ChatView;
+  })();
+}).call(this);
+}, "views/chats_view": function(exports, require, module) {(function() {
+  var Chats, chatView;
+  var __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; }, __hasProp = Object.prototype.hasOwnProperty, __extends = function(child, parent) {
+    for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; }
+    function ctor() { this.constructor = child; }
+    ctor.prototype = parent.prototype;
+    child.prototype = new ctor;
+    child.__super__ = parent.prototype;
+    return child;
+  };
+  Chats = require('collections/chats').Chats;
+  chatView = require('views/chat_view').ChatView;
+  exports.ChatsView = (function() {
+    __extends(ChatsView, Backbone.View);
+    function ChatsView() {
+      this.addOne = __bind(this.addOne, this);
+      this.render = __bind(this.render, this);
+      ChatsView.__super__.constructor.apply(this, arguments);
+    }
+    ChatsView.prototype.id = 'chats';
+    ChatsView.prototype.tagName = 'ul';
+    ChatsView.prototype.initialize = function() {
+      return this.collection.bind('add', this.addOne);
+    };
+    ChatsView.prototype.render = function() {
+      console.log("trying to render ChatsView");
+      this.collection.each(__bind(function(chat) {
+        return this.addOne(chat);
+      }, this));
+      return this;
+    };
+    ChatsView.prototype.addOne = function(chat) {
+      var view;
+      view = new chatView({
+        model: chat
+      });
+      $(this.el).append(view.render().el);
+      return this;
+    };
+    return ChatsView;
+  })();
+}).call(this);
+}, "views/home_view": function(exports, require, module) {(function() {
   var homeTemplate;
   var __hasProp = Object.prototype.hasOwnProperty, __extends = function(child, parent) {
     for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; }
@@ -2168,6 +2337,7 @@
     HomeView.prototype.id = 'home-view';
     HomeView.prototype.render = function() {
       $(this.el).html(homeTemplate());
+      $(this.el).append(app.views.chatsView.render().el);
       return this;
     };
     return HomeView;

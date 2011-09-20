@@ -1,8 +1,1 @@
-<div id="content">
-  <h1>Our lovely chatroom</h1>
-  <ul>
-    <li class='message'>Hi!</li>
-    <li class='message'>Hi!</li>
-    <li class='message'>Hi!</li>
-  </ul>
-</div>
+<h1>Our lovely chatroom</h1>
