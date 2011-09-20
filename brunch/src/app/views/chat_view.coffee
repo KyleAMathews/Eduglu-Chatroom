@@ -5,5 +5,6 @@ class exports.ChatView extends Backbone.View
   tagName: 'li'
 
   render: =>
-    $(@el).html chatTemplate( model: @model )
+    user = app.collections.users.get(@model.get("uid"))
+    $(@el).html chatTemplate( model: @model, user: user )
     @

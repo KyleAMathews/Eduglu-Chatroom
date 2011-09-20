@@ -2073,12 +2073,37 @@
       Chats.__super__.constructor.apply(this, arguments);
     }
     Chats.prototype.model = Chat;
-    Chats.prototype.url = '/chats';
+    Chats.prototype.url = 'http://localhost:3000/chats';
     return Chats;
   })();
 }).call(this);
+}, "collections/users": function(exports, require, module) {(function() {
+  var User;
+  var __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; }, __hasProp = Object.prototype.hasOwnProperty, __extends = function(child, parent) {
+    for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; }
+    function ctor() { this.constructor = child; }
+    ctor.prototype = parent.prototype;
+    child.prototype = new ctor;
+    child.__super__ = parent.prototype;
+    return child;
+  };
+  User = require('models/user').User;
+  exports.Users = (function() {
+    __extends(Users, Backbone.Collection);
+    function Users() {
+      this.currentUserUID = __bind(this.currentUserUID, this);
+      Users.__super__.constructor.apply(this, arguments);
+    }
+    Users.prototype.model = User;
+    Users.prototype.url = 'http://localhost:3000/Users';
+    Users.prototype.currentUserUID = function() {
+      return 1;
+    };
+    return Users;
+  })();
+}).call(this);
 }, "main": function(exports, require, module) {(function() {
-  var Chat, Chats, ChatsView, HomeView, MainRouter;
+  var Chat, Chats, ChatsView, HomeView, MainRouter, Users;
   window.app = {};
   app.routers = {};
   app.models = {};
@@ -2089,11 +2114,15 @@
   ChatsView = require('views/chats_view').ChatsView;
   Chat = require('models/chat').Chat;
   Chats = require('collections/chats').Chats;
+  Users = require('collections/users').Users;
   $(document).ready(function() {
     app.initialize = function() {
       app.routers.main = new MainRouter();
       app.models.chat = Chat;
+      app.collections.users = new Users();
+      app.collections.users.fetch();
       app.collections.chats = new Chats();
+      app.collections.chats.fetch();
       app.views.home = new HomeView({
         el: '#main-content'
       });
@@ -2134,6 +2163,28 @@
       time: ""
     };
     return Chat;
+  })();
+}).call(this);
+}, "models/user": function(exports, require, module) {(function() {
+  var __hasProp = Object.prototype.hasOwnProperty, __extends = function(child, parent) {
+    for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; }
+    function ctor() { this.constructor = child; }
+    ctor.prototype = parent.prototype;
+    child.prototype = new ctor;
+    child.__super__ = parent.prototype;
+    return child;
+  };
+  exports.User = (function() {
+    __extends(User, Backbone.Model);
+    function User() {
+      User.__super__.constructor.apply(this, arguments);
+    }
+    User.prototype.defaults = {
+      uid: 1,
+      name: "Kyle Mathews",
+      pic: "https://island.byu.edu/files/imagecache/20x20_crop/pictures/picture-3.jpg"
+    };
+    return User;
   })();
 }).call(this);
 }, "routers/main_router": function(exports, require, module) {(function() {
@@ -2198,6 +2249,11 @@
   }
   (function() {
     (function() {
+      __out.push('<img src="');
+      __out.push(__sanitize(this.user.get("pic")));
+      __out.push('" />');
+      __out.push(__sanitize(this.user.get('name')));
+      __out.push(' ');
       __out.push(__sanitize(this.model.get('body')));
       __out.push('\n');
     }).call(this);
@@ -2289,7 +2345,9 @@
   }
   (function() {
     (function() {
-      __out.push('<h1>Our lovely chatroom</h1>\n');
+      __out.push('<h1>');
+      __out.push(__sanitize(this.name));
+      __out.push('\'s lovely chatroom</h1>\n');
     }).call(this);
     
   }).call(__obj);
@@ -2315,8 +2373,11 @@
     ChatView.prototype.className = 'chat';
     ChatView.prototype.tagName = 'li';
     ChatView.prototype.render = function() {
+      var user;
+      user = app.collections.users.get(this.model.get("uid"));
       $(this.el).html(chatTemplate({
-        model: this.model
+        model: this.model,
+        user: user
       }));
       return this;
     };
@@ -2346,7 +2407,8 @@
     }
     ChatsView.prototype.id = 'chats';
     ChatsView.prototype.initialize = function() {
-      return this.collection.bind('add', this.addOne);
+      this.collection.bind('add', this.addOne);
+      return this.collection.bind('reset', this.render);
     };
     ChatsView.prototype.render = function() {
       $(this.el).html(chatsTemplate());
@@ -2374,7 +2436,8 @@
         return;
       }
       socket.emit('chat', {
-        body: $(e.target).val()
+        body: $(e.target).val(),
+        uid: app.collections.users.currentUserUID()
       });
       return $(e.target).val('');
     };
@@ -2401,7 +2464,9 @@
     HomeView.prototype.id = 'home-view';
     HomeView.prototype.render = function() {
       var chatsView;
-      $(this.el).html(homeTemplate());
+      $(this.el).html(homeTemplate({
+        name: Drupal.settings.chatroom.group.name[0]
+      }));
       chatsView = new ChatsView({
         collection: app.collections.chats
       });

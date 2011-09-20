@@ -20,6 +20,8 @@ function eduglu_chatroom_menu() {
 }
 
 function eduglu_chatroom_init() {
+  global $user;
+
   drupal_add_css(drupal_get_path('module', 'eduglu_chatroom') . '/brunch/build/web/css/main.css', 'module');
   drupal_add_js(drupal_get_path('module', 'eduglu_chatroom') . '/brunch/build/web/js/app.js', 'module');
   drupal_add_js("require('main')", 'inline');
@@ -27,5 +29,20 @@ function eduglu_chatroom_init() {
 <script src="http://localhost:3000/socket.io/socket.io.js"></script>
 code;
   drupal_set_html_head($load_socketio);
+
+  # Chatroom settings
+  $space = spaces_get_space();
+  $settings = array(
+    'chatroom' => array(
+      'group' => array(
+        'name' => $space->group->title,
+        'nid' => $space->group->nid,
+      ),
+      'currentUser' => $user->uid
+    )
+  );
+
+  drupal_add_js($settings, 'setting');
+
   return "connecting...";
 }
