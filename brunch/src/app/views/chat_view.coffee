@@ -5,7 +5,5 @@ class exports.ChatView extends Backbone.View
   tagName: 'li'
 
   render: =>
-    console.log $(@el)
-    console.log @model
     $(@el).html chatTemplate( model: @model )
     @

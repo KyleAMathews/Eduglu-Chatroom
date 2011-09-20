@@ -23,5 +23,9 @@ function eduglu_chatroom_init() {
   drupal_add_css(drupal_get_path('module', 'eduglu_chatroom') . '/brunch/build/web/css/main.css', 'module');
   drupal_add_js(drupal_get_path('module', 'eduglu_chatroom') . '/brunch/build/web/js/app.js', 'module');
   drupal_add_js("require('main')", 'inline');
+  $load_socketio = <<<code
+<script src="http://localhost:3000/socket.io/socket.io.js"></script>
+code;
+  drupal_set_html_head($load_socketio);
   return "connecting...";
 }

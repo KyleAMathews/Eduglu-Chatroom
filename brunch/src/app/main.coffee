@@ -17,7 +17,12 @@ $(document).ready ->
     app.models.chat = Chat
     app.collections.chats = new Chats()
     app.views.home = new HomeView( el: '#main-content' )
-    app.views.chatsView = new ChatsView( collection: app.collections.chats )
     app.routers.main.navigate 'home', true if Backbone.history.getFragment() is ''
   app.initialize()
   Backbone.history.start()
+
+  # Init Socket.io.
+  window.socket = io.connect('http://localhost:3000')
+  socket.on 'chat', (data) ->
+    chat = new Chat( body: data.body, uid: data.uid )
+    app.collections.chats.add(chat)

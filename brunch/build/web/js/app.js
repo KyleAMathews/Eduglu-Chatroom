@@ -1815,8 +1815,6 @@
         eventName += '.delegateEvents' + this.cid;
         if (selector === '') {
           $(this.el).bind(eventName, method);
-        } else {
-          $(this.el).delegate(selector, eventName, method);
         }
       }
     },
@@ -2099,15 +2097,21 @@
       app.views.home = new HomeView({
         el: '#main-content'
       });
-      app.views.chatsView = new ChatsView({
-        collection: app.collections.chats
-      });
       if (Backbone.history.getFragment() === '') {
         return app.routers.main.navigate('home', true);
       }
     };
     app.initialize();
-    return Backbone.history.start();
+    Backbone.history.start();
+    window.socket = io.connect('http://localhost:3000');
+    return socket.on('chat', function(data) {
+      var chat;
+      chat = new Chat({
+        body: data.body,
+        uid: data.uid
+      });
+      return app.collections.chats.add(chat);
+    });
   });
 }).call(this);
 }, "models/chat": function(exports, require, module) {(function() {
@@ -2201,6 +2205,51 @@
   }).call(__obj);
   __obj.safe = __objSafe, __obj.escape = __escape;
   return __out.join('');
+}}, "templates/chats": function(exports, require, module) {module.exports = function(__obj) {
+  if (!__obj) __obj = {};
+  var __out = [], __capture = function(callback) {
+    var out = __out, result;
+    __out = [];
+    callback.call(this);
+    result = __out.join('');
+    __out = out;
+    return __safe(result);
+  }, __sanitize = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else if (typeof value !== 'undefined' && value != null) {
+      return __escape(value);
+    } else {
+      return '';
+    }
+  }, __safe, __objSafe = __obj.safe, __escape = __obj.escape;
+  __safe = __obj.safe = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else {
+      if (!(typeof value !== 'undefined' && value != null)) value = '';
+      var result = new String(value);
+      result.ecoSafe = true;
+      return result;
+    }
+  };
+  if (!__escape) {
+    __escape = __obj.escape = function(value) {
+      return ('' + value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    };
+  }
+  (function() {
+    (function() {
+      __out.push('<ul></ul>\n<input class="enter-chat" placeholder="Say something" type="text" />\n');
+    }).call(this);
+    
+  }).call(__obj);
+  __obj.safe = __objSafe, __obj.escape = __escape;
+  return __out.join('');
 }}, "templates/home": function(exports, require, module) {module.exports = function(__obj) {
   if (!__obj) __obj = {};
   var __out = [], __capture = function(callback) {
@@ -2266,8 +2315,6 @@
     ChatView.prototype.className = 'chat';
     ChatView.prototype.tagName = 'li';
     ChatView.prototype.render = function() {
-      console.log($(this.el));
-      console.log(this.model);
       $(this.el).html(chatTemplate({
         model: this.model
       }));
@@ -2277,7 +2324,7 @@
   })();
 }).call(this);
 }, "views/chats_view": function(exports, require, module) {(function() {
-  var Chats, chatView;
+  var Chats, chatView, chatsTemplate;
   var __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; }, __hasProp = Object.prototype.hasOwnProperty, __extends = function(child, parent) {
     for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; }
     function ctor() { this.constructor = child; }
@@ -2288,20 +2335,24 @@
   };
   Chats = require('collections/chats').Chats;
   chatView = require('views/chat_view').ChatView;
+  chatsTemplate = require('templates/chats');
   exports.ChatsView = (function() {
     __extends(ChatsView, Backbone.View);
     function ChatsView() {
+      this.sendChat = __bind(this.sendChat, this);
       this.addOne = __bind(this.addOne, this);
       this.render = __bind(this.render, this);
       ChatsView.__super__.constructor.apply(this, arguments);
     }
     ChatsView.prototype.id = 'chats';
-    ChatsView.prototype.tagName = 'ul';
     ChatsView.prototype.initialize = function() {
       return this.collection.bind('add', this.addOne);
     };
     ChatsView.prototype.render = function() {
-      console.log("trying to render ChatsView");
+      $(this.el).html(chatsTemplate());
+      this.$('.enter-chat').bind('keypress', __bind(function(e) {
+        return this.sendChat(e);
+      }, this));
       this.collection.each(__bind(function(chat) {
         return this.addOne(chat);
       }, this));
@@ -2312,14 +2363,26 @@
       view = new chatView({
         model: chat
       });
-      $(this.el).append(view.render().el);
+      this.$('ul').append(view.render().el);
       return this;
+    };
+    ChatsView.prototype.sendChat = function(e) {
+      if (e.keyCode !== 13) {
+        return;
+      }
+      if ($(e.target).val() === "") {
+        return;
+      }
+      socket.emit('chat', {
+        body: $(e.target).val()
+      });
+      return $(e.target).val('');
     };
     return ChatsView;
   })();
 }).call(this);
 }, "views/home_view": function(exports, require, module) {(function() {
-  var homeTemplate;
+  var ChatsView, homeTemplate;
   var __hasProp = Object.prototype.hasOwnProperty, __extends = function(child, parent) {
     for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; }
     function ctor() { this.constructor = child; }
@@ -2329,6 +2392,7 @@
     return child;
   };
   homeTemplate = require('templates/home');
+  ChatsView = require('views/chats_view').ChatsView;
   exports.HomeView = (function() {
     __extends(HomeView, Backbone.View);
     function HomeView() {
@@ -2336,8 +2400,12 @@
     }
     HomeView.prototype.id = 'home-view';
     HomeView.prototype.render = function() {
+      var chatsView;
       $(this.el).html(homeTemplate());
-      $(this.el).append(app.views.chatsView.render().el);
+      chatsView = new ChatsView({
+        collection: app.collections.chats
+      });
+      $(this.el).append(chatsView.render().el);
       return this;
     };
     return HomeView;

@@ -963,8 +963,6 @@
         eventName += '.delegateEvents' + this.cid;
         if (selector === '') {
           $(this.el).bind(eventName, method);
-        } else {
-          $(this.el).delegate(selector, eventName, method);
         }
       }
     },
