@@ -2161,10 +2161,17 @@
       });
       return app.collections.chats.add(chat);
     });
-    socket.on('join', function(uid) {
-      return app.collections.users.get(uid).set({
-        connected: true
-      });
+    socket.on('join', function(uids) {
+      var uid, _i, _len, _results;
+      _results = [];
+      for (_i = 0, _len = uids.length; _i < _len; _i++) {
+        uid = uids[_i];
+        uid = parseInt(uid);
+        _results.push(app.collections.users.get(uid).set({
+          connected: true
+        }));
+      }
+      return _results;
     });
     return socket.on('leave', function(uid) {
       return app.collections.users.get(uid).set({

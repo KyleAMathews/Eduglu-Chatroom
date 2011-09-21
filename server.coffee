@@ -27,6 +27,18 @@ myclient.query('USE island_byu_edu')
 redis = require 'redis'
 rclient = redis.createClient()
 
+# Clear out ephemeral data.
+rclient.keys("connected:*", (err, res) ->
+  for key in res
+    console.log "deleting " + key
+    rclient.del(key, redis.print)
+)
+rclient.keys("userkey:*", (err, res) ->
+  for key in res
+    console.log "deleting " + key
+    rclient.del(key, redis.print)
+)
+
 # Setup Express middleware.
 app.use express.bodyParser()
 app.use express.methodOverride()
@@ -86,7 +98,6 @@ app.all '/users', (req, res) ->
         result.id = result.uid
         users.push result
 
-      users.push id: 1, uid: 1, name: "Island Admin", pic: 'https://island.byu.edu/files/imagecache/20x20_crop/pictures/picture-1.jpg'
       res.send users
   )
 
@@ -95,15 +106,15 @@ app.post '/drupal', (req, res) ->
   res.send 'ok'
 
 exports.newUser = (data) ->
-  rclient.hset(data.key, 'uid', data.uid, redis.print)
-  rclient.hset(data.key, 'group', data.group, redis.print)
+  rclient.hset('userkey:' + data.key, 'uid', data.uid, redis.print)
+  rclient.hset('userkey:' + data.key, 'group', data.group, redis.print)
   io.sockets.emit 'chat', uid:data.uid, body: JSON.stringify(data) # Temp
 
 io.sockets.on 'connection', (socket) ->
 
   socket.on 'chat', (data) ->
     socket.get 'key', (err, key) ->
-      rclient.hgetall key, (err, res) ->
+      rclient.hgetall 'userkey:' + key, (err, res) ->
         io.sockets.in(res.group).emit 'chat',
           uid: res.uid, body: data.body
         # Save chats to Redis
@@ -113,7 +124,7 @@ io.sockets.on 'connection', (socket) ->
   socket.on 'auth', (key) ->
     # Retrieve the user ID and group ID from Redis and
     # set locally in socket.io and send to the client.
-    rclient.hgetall(key, (err, res) ->
+    rclient.hgetall('userkey:' + key, (err, res) ->
       # No key in redis means user not authenticated by Drupal.
       unless res.group? and res.uid? then return
       socket.set('key', key)
@@ -122,13 +133,24 @@ io.sockets.on 'connection', (socket) ->
       socket.emit 'set group', parseInt(res.group)
 
       socket.emit 'set uid', parseInt(res.uid)
-      io.sockets.in(res.group).emit 'join', parseInt(res.uid)
+
+      # Add user to connected set in Redis.
+      rclient.sadd('connected:' + res.group, res.uid)
+
+      # Tell everyone about the new user.
+      socket.broadcast.to(res.group).emit 'join', [res.uid]
+
+      # Send to current client a list of all connected users.
+      rclient.smembers('connected:' + res.group, (err, users) ->
+        socket.emit 'join', users
+      )
     )
 
   socket.on 'disconnect', ->
     socket.get 'key', (err, key) ->
-      rclient.hgetall key, (err, res) ->
+      rclient.hgetall 'userkey:' + key, (err, res) ->
         io.sockets.in(res.group).emit 'leave', parseInt(res.uid)
-        rclient.del(key)
+        rclient.srem('connected:' + res.group, res.uid)
+        rclient.del('userkey:' + key)
 
 app.listen 3000

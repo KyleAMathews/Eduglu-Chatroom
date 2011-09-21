@@ -58,8 +58,10 @@ $(document).ready ->
     chat = new Chat( body: data.body, uid: data.uid )
     app.collections.chats.add(chat)
 
-  socket.on 'join', (uid) ->
-    app.collections.users.get(uid).set( connected: true )
+  socket.on 'join', (uids) ->
+    for uid in uids
+      uid = parseInt(uid)
+      app.collections.users.get(uid).set( connected: true )
 
   socket.on 'leave', (uid) ->
     app.collections.users.get(uid).set( connected: false )
