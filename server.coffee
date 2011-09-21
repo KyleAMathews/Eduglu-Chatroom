@@ -45,7 +45,7 @@ app.all '/users', (req, res) ->
   # Query Drupal for info on people in this group.
   users = []
   myclient.query(
-    'SELECT u.uid, r.realname as name
+    'SELECT u.uid, u.picture as pic, r.realname as name
     FROM og_uid o
     INNER JOIN realname r
     INNER JOIN users u
@@ -55,7 +55,11 @@ app.all '/users', (req, res) ->
     (err, results, fields) ->
       if err then throw err
       for result in results
-        result.pic = 'https://island.byu.edu/files/imagecache/20x20_crop/pictures/picture-' + result.uid + '.jpg' #TODO generate URL in Drupal and store within node.js somewhere
+        if result.picture?
+          result.pic = 'https://island.byu.edu/files/imagecache/20x20_crop/pictures/picture-' + result.uid + '.jpg'
+        else
+          # Use the default picture.
+          result.pic = "https://island.byu.edu/files/imagecache/25x25_crop/sites/all/themes/dewey/images/default_user_avatar.png"
         result.id = result.uid
         users.push result
 
