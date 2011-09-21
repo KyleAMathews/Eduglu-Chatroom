@@ -55,3 +55,26 @@ $(document).ready ->
 
   socket.on 'leave', (uid) ->
     app.collections.users.get(uid).set( connected: false )
+
+# Helper functions
+
+# Create a cookie with the specified name and value.
+window.SetCookie = (sName, sValue) ->
+  document.cookie = sName + "=" + escape(sValue)
+  # Expires the cookie in one month
+  date = new Date()
+  date.setMonth(date.getMonth()+1)
+  document.cookie += ("; expires=" + date.toUTCString())
+
+# Retrieve the value of the cookie with the specified name.
+window.GetCookie = (sName) ->
+  # cookies are separated by semicolons
+  aCookie = document.cookie.split("; ")
+  for i in [0..aCookie.length]
+    # a name/value pair (a crumb) is separated by an equal sign
+    aCrumb = aCookie[i].split("=")
+    if (sName == aCrumb[0])
+      return unescape(aCrumb[1])
+
+    # a cookie with the requested name does not exist
+  return null
