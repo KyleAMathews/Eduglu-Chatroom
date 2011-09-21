@@ -2139,7 +2139,10 @@
     window.socket = io.connect('http://localhost:3000');
     socket.on('connect', function() {
       app.collections.users.currentUser = app.collections.users.get(Drupal.settings.chatroom.currentUser);
-      return socket.emit('set uid', Drupal.settings.chatroom.currentUser);
+      return socket.emit('auth', Drupal.settings.chatroom.key);
+    });
+    socket.on('set uid', function(data) {
+      return Drupal.settings.chatroom.currentUser = parseInt(data);
     });
     socket.on('chat', function(data) {
       var chat;

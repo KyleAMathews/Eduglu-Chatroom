@@ -72,7 +72,9 @@ app.post '/drupal', (req, res) ->
   res.send 'ok'
 
 exports.newUser = (data) ->
-  io.sockets.emit 'chat', uid:1, body: JSON.stringify(data)
+  rclient.set('userauth:' + data.key, data.uid, redis.print)
+  rclient.expire('userauth:' + data.key, 100, redis.print)
+  io.sockets.emit 'chat', uid:data.uid, body: JSON.stringify(data)
 
 io.sockets.on 'connection', (socket) ->
 
@@ -83,9 +85,14 @@ io.sockets.on 'connection', (socket) ->
     # Save chats to Redis
     rclient.lpush('chats', JSON.stringify(data))
 
-  socket.on 'set uid', (uid) ->
-    socket.set('uid', uid)
-    io.sockets.emit 'join', uid
+  socket.on 'auth', (key) ->
+    rclient.get("userauth:" + key, (err, res) ->
+      rclient.del("userauth:" + key)
+      uid = res.toString()
+      socket.emit 'set uid', res.toString()
+      socket.set('uid', uid)
+      io.sockets.emit 'join', uid
+    )
 
   socket.on 'disconnect', ->
     socket.get('uid', (err, uid) ->

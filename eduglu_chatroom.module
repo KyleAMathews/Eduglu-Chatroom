@@ -32,21 +32,23 @@ code;
 
   # Chatroom settings
   $space = spaces_get_space();
+  $key = rand(0, getrandmax());
   $settings = array(
     'chatroom' => array(
       'group' => array(
         'name' => $space->group->title,
         'nid' => $space->group->nid,
       ),
-      'currentUser' => $user->uid,
+      'key' => $key,
     )
   );
 
   drupal_add_js($settings, 'setting');
 
   eduglu_chatroom_post('newUser', array(
-    'user' => $user->uid,
+    'uid' => $user->uid,
     'group' => $space->group->nid,
+    'key' => $key,
   ));
 
   return "connecting...";
