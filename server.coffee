@@ -2,6 +2,22 @@ express = require('express')
 app = express.createServer()
 io = require('socket.io').listen(app)
 
+io.configure( ->
+  io.set('authorization', (handshakeData, callback) ->
+    console.log handshakeData
+    cookies = {}
+    handshakeData.headers.cookie && handshakeData.headers.cookie.split(';').forEach (cookie) ->
+      parts = cookie.split('=')
+      cookies[ parts[ 0 ].trim() ] = ( parts[ 1 ] || '' ).trim()
+
+    # Does it have a valid Drupal UID?
+    if cookies.DRUPAL_UID?
+      callback(null, true)
+    else
+      callback(null, false)
+  )
+)
+
 mysql = require('mysql')
 myclient = mysql.createClient(
   user: 'root'
