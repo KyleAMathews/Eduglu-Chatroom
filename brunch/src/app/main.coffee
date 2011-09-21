@@ -21,7 +21,7 @@ $(document).ready ->
     app.collections.users = new Users()
     app.collections.users.fetch(
       data:
-        gid: Drupal.settings.chatroom.group.nid[0]
+        gid: Drupal.settings.chatroom.group.nid
     )
 
     # Load recent chats for this group.
@@ -40,8 +40,8 @@ $(document).ready ->
 
   socket.on 'connect', ->
     app.collections.users.currentUser =
-      app.collections.users.get(Drupal.settings.chatroom.currentUser[0])
-    socket.emit 'set uid', Drupal.settings.chatroom.currentUser[0]
+      app.collections.users.get(Drupal.settings.chatroom.currentUser)
+    socket.emit 'set uid', Drupal.settings.chatroom.currentUser
 
   socket.on 'chat', (data) ->
     chat = new Chat( body: data.body, uid: data.uid )

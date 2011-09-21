@@ -2122,7 +2122,7 @@
       app.collections.users = new Users();
       app.collections.users.fetch({
         data: {
-          gid: Drupal.settings.chatroom.group.nid[0]
+          gid: Drupal.settings.chatroom.group.nid
         }
       });
       app.collections.chats = new Chats();
@@ -2138,8 +2138,8 @@
     Backbone.history.start();
     window.socket = io.connect('http://localhost:3000');
     socket.on('connect', function() {
-      app.collections.users.currentUser = app.collections.users.get(Drupal.settings.chatroom.currentUser[0]);
-      return socket.emit('set uid', Drupal.settings.chatroom.currentUser[0]);
+      app.collections.users.currentUser = app.collections.users.get(Drupal.settings.chatroom.currentUser);
+      return socket.emit('set uid', Drupal.settings.chatroom.currentUser);
     });
     socket.on('chat', function(data) {
       var chat;
@@ -2198,9 +2198,9 @@
       User.__super__.constructor.apply(this, arguments);
     }
     User.prototype.defaults = {
-      uid: 1,
-      name: "Kyle Mathews",
-      pic: "https://island.byu.edu/files/imagecache/20x20_crop/pictures/picture-3.jpg"
+      name: "",
+      pic: "",
+      connected: false
     };
     return User;
   })();
@@ -2483,7 +2483,7 @@
     HomeView.prototype.render = function() {
       var chatsView;
       $(this.el).html(homeTemplate({
-        name: Drupal.settings.chatroom.group.name[0]
+        name: Drupal.settings.chatroom.group.name
       }));
       chatsView = new ChatsView({
         collection: app.collections.chats

@@ -9,7 +9,7 @@ function eduglu_chatroom_menu() {
   $items = array();
   $items['chatroom'] = array(
     'title' => 'Chatroom',
-    'page callback' => 'eduglu_chatroom_init',
+    'page callback' => 'eduglu_chatroom_load',
     'page arguments' => array(),
     'access callback' => 'spaces_access_feature',
     'access arguments' => array('view', 'eduglu_chatroom'),
@@ -19,7 +19,7 @@ function eduglu_chatroom_menu() {
   return $items;
 }
 
-function eduglu_chatroom_init() {
+function eduglu_chatroom_load() {
   global $user;
 
   drupal_add_css(drupal_get_path('module', 'eduglu_chatroom') . '/brunch/build/web/css/main.css', 'module');
@@ -38,7 +38,7 @@ code;
         'name' => $space->group->title,
         'nid' => $space->group->nid,
       ),
-      'currentUser' => $user->uid
+      'currentUser' => $user->uid,
     )
   );
 
