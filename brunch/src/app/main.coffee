@@ -22,11 +22,16 @@ $(document).ready ->
     app.collections.users.fetch(
       data:
         gid: Drupal.settings.chatroom.group.nid
+        key: GetCookie('rediskey')
     )
 
     # Load recent chats for this group.
     app.collections.chats = new Chats()
-    app.collections.chats.fetch()
+    app.collections.chats.fetch(
+      data:
+        gid: Drupal.settings.chatroom.group.nid
+        key: GetCookie('rediskey')
+    )
 
     app.views.home = new HomeView( el: '#main-content' )
     app.routers.main.navigate 'home', true if Backbone.history.getFragment() is ''

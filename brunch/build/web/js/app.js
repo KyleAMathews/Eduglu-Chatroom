@@ -2122,11 +2122,17 @@
       app.collections.users = new Users();
       app.collections.users.fetch({
         data: {
-          gid: Drupal.settings.chatroom.group.nid
+          gid: Drupal.settings.chatroom.group.nid,
+          key: GetCookie('rediskey')
         }
       });
       app.collections.chats = new Chats();
-      app.collections.chats.fetch();
+      app.collections.chats.fetch({
+        data: {
+          gid: Drupal.settings.chatroom.group.nid,
+          key: GetCookie('rediskey')
+        }
+      });
       app.views.home = new HomeView({
         el: '#main-content'
       });

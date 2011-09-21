@@ -4,7 +4,6 @@ io = require('socket.io').listen(app)
 
 io.configure( ->
   io.set('authorization', (handshakeData, callback) ->
-    console.log handshakeData
     cookies = {}
     handshakeData.headers.cookie && handshakeData.headers.cookie.split(';').forEach (cookie) ->
       parts = cookie.split('=')
@@ -35,6 +34,10 @@ app.use app.router
 app.use express.static __dirname + '/public'
 
 app.all '/chats', (req, res) ->
+  # A group id needs to be set
+  # TODO Check that this is the group the person has access to.
+  unless req.param('gid')? then return
+
   # TODO figure out how to make this global, probably
   # create a middleware thingy.
   # This SO answer looks helpful - http://stackoverflow.com/questions/7067966/how-to-allow-cors-in-express-nodejs
@@ -42,7 +45,7 @@ app.all '/chats', (req, res) ->
     req.header('origin'))
   res.header("Access-Control-Allow-Headers", "X-Requested-With")
   res.header("X-Powered-By","nodejs")
-  rclient.lrange('chats', 0, 100, (err, reply) ->
+  rclient.lrange('chats:' + req.param('gid'), 0, 100, (err, reply) ->
     chats = []
     for chat in reply
       chats.unshift(JSON.parse(chat))
@@ -50,6 +53,10 @@ app.all '/chats', (req, res) ->
   )
 
 app.all '/users', (req, res) ->
+  # A group id needs to be set
+  # TODO Check that this is the group the person has access to.
+  unless req.param('gid')? then return
+
   # TODO figure out how to make this global, probably
   # create a middleware thingy.
   # This SO answer looks helpful - http://stackoverflow.com/questions/7067966/how-to-allow-cors-in-express-nodejs
@@ -88,8 +95,8 @@ app.post '/drupal', (req, res) ->
   res.send 'ok'
 
 exports.newUser = (data) ->
-  rclient.hset(data.key, 'uid', parseInt(data.uid), redis.print)
-  rclient.hset(data.key, 'group', parseInt(data.group), redis.print)
+  rclient.hset(data.key, 'uid', data.uid, redis.print)
+  rclient.hset(data.key, 'group', data.group, redis.print)
   io.sockets.emit 'chat', uid:data.uid, body: JSON.stringify(data) # Temp
 
 io.sockets.on 'connection', (socket) ->
@@ -100,7 +107,8 @@ io.sockets.on 'connection', (socket) ->
         io.sockets.in(res.group).emit 'chat',
           uid: res.uid, body: data.body
         # Save chats to Redis
-        rclient.lpush('chats:' + socket.get('group'), JSON.stringify(data))
+        data.uid = res.uid
+        rclient.lpush('chats:' + res.group, JSON.stringify(data))
 
   socket.on 'auth', (key) ->
     # Retrieve the user ID and group ID from Redis and
@@ -111,15 +119,16 @@ io.sockets.on 'connection', (socket) ->
       socket.set('key', key)
       console.log res
       socket.join(res.group)
-      socket.emit 'set group', res.group
+      socket.emit 'set group', parseInt(res.group)
 
-      socket.emit 'set uid', res.uid
-      io.sockets.in(res.group).emit 'join', res.uid
+      socket.emit 'set uid', parseInt(res.uid)
+      io.sockets.in(res.group).emit 'join', parseInt(res.uid)
     )
 
   socket.on 'disconnect', ->
-    socket.get('uid', (err, uid) ->
-      io.sockets.emit 'leave', uid
-    )
+    socket.get 'key', (err, key) ->
+      rclient.hgetall key, (err, res) ->
+        io.sockets.in(res.group).emit 'leave', parseInt(res.uid)
+        rclient.del(key)
 
 app.listen 3000
