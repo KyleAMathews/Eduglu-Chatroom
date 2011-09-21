@@ -33,13 +33,13 @@ code;
   # Chatroom settings
   $space = spaces_get_space();
   $key = rand(0, getrandmax());
+  setcookie('rediskey', $key);
   $settings = array(
     'chatroom' => array(
       'group' => array(
         'name' => $space->group->title,
         'nid' => $space->group->nid,
       ),
-      'key' => $key,
     )
   );
 

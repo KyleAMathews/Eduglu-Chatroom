@@ -41,10 +41,13 @@ $(document).ready ->
   socket.on 'connect', ->
     app.collections.users.currentUser =
       app.collections.users.get(Drupal.settings.chatroom.currentUser)
-    socket.emit 'auth', Drupal.settings.chatroom.key
+    socket.emit 'auth', GetCookie('rediskey')
 
   socket.on 'set uid', (data) ->
-    Drupal.settings.chatroom.currentUser = parseInt(data)
+    Drupal.settings.chatroom.currentUser = data
+
+  socket.on 'set group', (data) ->
+    Drupal.settings.chatroom.group.nid = data
 
   socket.on 'chat', (data) ->
     chat = new Chat( body: data.body, uid: data.uid )

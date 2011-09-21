@@ -88,26 +88,33 @@ app.post '/drupal', (req, res) ->
   res.send 'ok'
 
 exports.newUser = (data) ->
-  rclient.set('userauth:' + data.key, data.uid, redis.print)
-  rclient.expire('userauth:' + data.key, 100, redis.print)
-  io.sockets.emit 'chat', uid:data.uid, body: JSON.stringify(data)
+  rclient.hset(data.key, 'uid', parseInt(data.uid), redis.print)
+  rclient.hset(data.key, 'group', parseInt(data.group), redis.print)
+  io.sockets.emit 'chat', uid:data.uid, body: JSON.stringify(data) # Temp
 
 io.sockets.on 'connection', (socket) ->
 
   socket.on 'chat', (data) ->
-    console.log data
-    io.sockets.emit 'chat',
-      uid: data.uid, body: data.body
-    # Save chats to Redis
-    rclient.lpush('chats', JSON.stringify(data))
+    socket.get 'key', (err, key) ->
+      rclient.hgetall key, (err, res) ->
+        io.sockets.in(res.group).emit 'chat',
+          uid: res.uid, body: data.body
+        # Save chats to Redis
+        rclient.lpush('chats:' + socket.get('group'), JSON.stringify(data))
 
   socket.on 'auth', (key) ->
-    rclient.get("userauth:" + key, (err, res) ->
-      rclient.del("userauth:" + key)
-      uid = res.toString()
-      socket.emit 'set uid', res.toString()
-      socket.set('uid', uid)
-      io.sockets.emit 'join', uid
+    # Retrieve the user ID and group ID from Redis and
+    # set locally in socket.io and send to the client.
+    rclient.hgetall(key, (err, res) ->
+      # No key in redis means user not authenticated by Drupal.
+      unless res.group? and res.uid? then return
+      socket.set('key', key)
+      console.log res
+      socket.join(res.group)
+      socket.emit 'set group', res.group
+
+      socket.emit 'set uid', res.uid
+      io.sockets.in(res.group).emit 'join', res.uid
     )
 
   socket.on 'disconnect', ->

@@ -30,6 +30,5 @@ class exports.ChatsView extends Backbone.View
     return if $(e.target).val() is ""
     socket.emit('chat',
       body: $(e.target).val()
-      uid: app.collections.users.currentUserUID()
     )
     $(e.target).val('')

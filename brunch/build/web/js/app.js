@@ -2139,10 +2139,13 @@
     window.socket = io.connect('http://localhost:3000');
     socket.on('connect', function() {
       app.collections.users.currentUser = app.collections.users.get(Drupal.settings.chatroom.currentUser);
-      return socket.emit('auth', Drupal.settings.chatroom.key);
+      return socket.emit('auth', GetCookie('rediskey'));
     });
     socket.on('set uid', function(data) {
-      return Drupal.settings.chatroom.currentUser = parseInt(data);
+      return Drupal.settings.chatroom.currentUser = data;
+    });
+    socket.on('set group', function(data) {
+      return Drupal.settings.chatroom.group.nid = data;
     });
     socket.on('chat', function(data) {
       var chat;
@@ -2163,6 +2166,24 @@
       });
     });
   });
+  window.SetCookie = function(sName, sValue) {
+    var date;
+    document.cookie = sName + "=" + escape(sValue);
+    date = new Date();
+    date.setMonth(date.getMonth() + 1);
+    return document.cookie += "; expires=" + date.toUTCString();
+  };
+  window.GetCookie = function(sName) {
+    var aCookie, aCrumb, i, _ref;
+    aCookie = document.cookie.split("; ");
+    for (i = 0, _ref = aCookie.length; 0 <= _ref ? i <= _ref : i >= _ref; 0 <= _ref ? i++ : i--) {
+      aCrumb = aCookie[i].split("=");
+      if (sName === aCrumb[0]) {
+        return unescape(aCrumb[1]);
+      }
+    }
+    return null;
+  };
 }).call(this);
 }, "models/chat": function(exports, require, module) {(function() {
   var __hasProp = Object.prototype.hasOwnProperty, __extends = function(child, parent) {
@@ -2457,8 +2478,7 @@
         return;
       }
       socket.emit('chat', {
-        body: $(e.target).val(),
-        uid: app.collections.users.currentUserUID()
+        body: $(e.target).val()
       });
       return $(e.target).val('');
     };
