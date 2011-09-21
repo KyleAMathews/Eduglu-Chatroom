@@ -19,11 +19,7 @@ $(document).ready ->
 
     # Load users for this group.
     app.collections.users = new Users()
-    app.collections.users.fetch(
-      data:
-        gid: Drupal.settings.chatroom.group.nid
-        key: GetCookie('rediskey')
-    )
+    app.collections.users.reset(Drupal.settings.chatroom.group.users)
 
     # Load recent chats for this group.
     app.collections.chats = new Chats()

@@ -1,1 +1,1 @@
-<img src="<%= @user.get("pic") %>" /><%= @user.get('name') %> <%= @model.get('body') %>
+<%- @user.get("pic") %><%= @user.get('name') %> <%= @model.get('body') %>

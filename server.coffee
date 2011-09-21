@@ -27,7 +27,7 @@ myclient.query('USE island_byu_edu')
 redis = require 'redis'
 rclient = redis.createClient()
 
-# Clear out ephemeral data.
+# Clear out ephemeral data on reboot.
 rclient.keys("connected:*", (err, res) ->
   for key in res
     console.log "deleting " + key
@@ -64,43 +64,6 @@ app.all '/chats', (req, res) ->
     res.send chats
   )
 
-app.all '/users', (req, res) ->
-  # A group id needs to be set
-  # TODO Check that this is the group the person has access to.
-  unless req.param('gid')? then return
-
-  # TODO figure out how to make this global, probably
-  # create a middleware thingy.
-  # This SO answer looks helpful - http://stackoverflow.com/questions/7067966/how-to-allow-cors-in-express-nodejs
-  res.header("Access-Control-Allow-Origin",
-    req.header('origin'))
-  res.header("Access-Control-Allow-Headers", "X-Requested-With")
-  res.header("X-Powered-By","nodejs")
-
-  # Query Drupal for info on people in this group.
-  users = []
-  myclient.query(
-    'SELECT u.uid, u.picture as pic, r.realname as name
-    FROM og_uid o
-    INNER JOIN realname r
-    INNER JOIN users u
-    WHERE o.uid = r.uid
-    AND o.uid = u.uid
-    AND o.nid = ?', [req.param('gid')]
-    (err, results, fields) ->
-      if err then throw err
-      for result in results
-        if result.picture?
-          result.pic = 'https://island.byu.edu/files/imagecache/20x20_crop/pictures/picture-' + result.uid + '.jpg'
-        else
-          # Use the default picture.
-          result.pic = "https://island.byu.edu/files/imagecache/25x25_crop/sites/all/themes/dewey/images/default_user_avatar.png"
-        result.id = result.uid
-        users.push result
-
-      res.send users
-  )
-
 app.post '/drupal', (req, res) ->
   exports[req.body.method](req.body.data)
   res.send 'ok'
@@ -128,7 +91,6 @@ io.sockets.on 'connection', (socket) ->
       # No key in redis means user not authenticated by Drupal.
       unless res.group? and res.uid? then return
       socket.set('key', key)
-      console.log res
       socket.join(res.group)
       socket.emit 'set group', parseInt(res.group)
 
@@ -149,6 +111,7 @@ io.sockets.on 'connection', (socket) ->
   socket.on 'disconnect', ->
     socket.get 'key', (err, key) ->
       rclient.hgetall 'userkey:' + key, (err, res) ->
+        # Inform everyone the user has left and remove them from redis.
         io.sockets.in(res.group).emit 'leave', parseInt(res.uid)
         rclient.srem('connected:' + res.group, res.uid)
         rclient.del('userkey:' + key)

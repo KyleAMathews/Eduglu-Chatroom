@@ -32,6 +32,22 @@ code;
 
   # Chatroom settings
   $space = spaces_get_space();
+  $results = db_query("SELECT u.uid, u.picture as pic, r.realname as name
+    FROM og_uid o
+    INNER JOIN realname r
+    INNER JOIN users u
+    WHERE o.uid = r.uid
+    AND o.uid = u.uid
+    AND o.nid = %d", $space->group->nid);
+
+  $users = array();
+  while ($row = db_fetch_object($results)) {
+    $row->pic = eduglu_core_create_imagecache_url($row->pic,
+      '25x25_crop', 'connected-users');
+    $row->id = $row->uid;
+    $users[] = $row;
+  }
+
   $key = rand(0, getrandmax());
   setcookie('rediskey', $key);
   $settings = array(
@@ -39,11 +55,13 @@ code;
       'group' => array(
         'name' => $space->group->title,
         'nid' => $space->group->nid,
+        'users' => $users,
       ),
     )
   );
 
   drupal_add_js($settings, 'setting');
+
 
   eduglu_chatroom_post('newUser', array(
     'uid' => $user->uid,

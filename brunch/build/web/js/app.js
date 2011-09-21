@@ -2120,12 +2120,7 @@
       app.routers.main = new MainRouter();
       app.models.chat = Chat;
       app.collections.users = new Users();
-      app.collections.users.fetch({
-        data: {
-          gid: Drupal.settings.chatroom.group.nid,
-          key: GetCookie('rediskey')
-        }
-      });
+      app.collections.users.reset(Drupal.settings.chatroom.group.users);
       app.collections.chats = new Chats();
       app.collections.chats.fetch({
         data: {
@@ -2304,9 +2299,7 @@
   }
   (function() {
     (function() {
-      __out.push('<img src="');
-      __out.push(__sanitize(this.user.get("pic")));
-      __out.push('" />');
+      __out.push(this.user.get("pic"));
       __out.push(__sanitize(this.user.get('name')));
       __out.push(' ');
       __out.push(__sanitize(this.model.get('body')));
