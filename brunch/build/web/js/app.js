@@ -2097,7 +2097,7 @@
     Users.prototype.model = User;
     Users.prototype.url = 'http://localhost:3000/Users';
     Users.prototype.currentUserUID = function() {
-      return 1;
+      return this.currentUser.get("uid");
     };
     return Users;
   })();
@@ -2120,7 +2120,11 @@
       app.routers.main = new MainRouter();
       app.models.chat = Chat;
       app.collections.users = new Users();
-      app.collections.users.fetch();
+      app.collections.users.fetch({
+        data: {
+          gid: Drupal.settings.chatroom.group.nid[0]
+        }
+      });
       app.collections.chats = new Chats();
       app.collections.chats.fetch();
       app.views.home = new HomeView({
@@ -2133,13 +2137,27 @@
     app.initialize();
     Backbone.history.start();
     window.socket = io.connect('http://localhost:3000');
-    return socket.on('chat', function(data) {
+    socket.on('connect', function() {
+      app.collections.users.currentUser = app.collections.users.get(Drupal.settings.chatroom.currentUser[0]);
+      return socket.emit('set uid', Drupal.settings.chatroom.currentUser[0]);
+    });
+    socket.on('chat', function(data) {
       var chat;
       chat = new Chat({
         body: data.body,
         uid: data.uid
       });
       return app.collections.chats.add(chat);
+    });
+    socket.on('join', function(uid) {
+      return app.collections.users.get(uid).set({
+        connected: true
+      });
+    });
+    return socket.on('leave', function(uid) {
+      return app.collections.users.get(uid).set({
+        connected: false
+      });
     });
   });
 }).call(this);

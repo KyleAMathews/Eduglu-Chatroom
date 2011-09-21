@@ -44,5 +44,30 @@ code;
 
   drupal_add_js($settings, 'setting');
 
+  eduglu_chatroom_post('newUser', array(
+    'user' => $user->uid,
+    'group' => $space->group->nid,
+  ));
+
   return "connecting...";
+}
+
+/*
+ * Function for posting info to node.js server.
+ */
+function eduglu_chatroom_post($method, $data) {
+  // Set some paramenters for sending request.
+  $request_url = 'http://localhost:3000/drupal';
+  $request_headers = array('Content-Type' => 'application/json');
+  $request_method = 'POST';
+  $request_retry = 3;
+  $data = array(
+    'method' => $method,
+    'data' => $data,
+  );
+  $json_data = drupal_to_js($data);
+
+  // Send the request.
+  $result = drupal_http_request($request_url, $request_headers, $request_method, $json_data, $request_retry);
+  /* print_r($result);*/
 }

@@ -17,18 +17,38 @@ $(document).ready ->
     app.routers.main = new MainRouter()
     app.models.chat = Chat
 
+    # Load users for this group.
     app.collections.users = new Users()
-    app.collections.users.fetch() # Temporary until I get group loading working.
+    app.collections.users.fetch(
+      data:
+        gid: Drupal.settings.chatroom.group.nid[0]
+    )
+
+    # Load recent chats for this group.
     app.collections.chats = new Chats()
     app.collections.chats.fetch()
 
     app.views.home = new HomeView( el: '#main-content' )
     app.routers.main.navigate 'home', true if Backbone.history.getFragment() is ''
+
+  # Initialize the app.
   app.initialize()
   Backbone.history.start()
 
-  # Init Socket.io.
+  # Initialize Socket.io.
   window.socket = io.connect('http://localhost:3000')
+
+  socket.on 'connect', ->
+    app.collections.users.currentUser =
+      app.collections.users.get(Drupal.settings.chatroom.currentUser[0])
+    socket.emit 'set uid', Drupal.settings.chatroom.currentUser[0]
+
   socket.on 'chat', (data) ->
     chat = new Chat( body: data.body, uid: data.uid )
     app.collections.chats.add(chat)
+
+  socket.on 'join', (uid) ->
+    app.collections.users.get(uid).set( connected: true )
+
+  socket.on 'leave', (uid) ->
+    app.collections.users.get(uid).set( connected: false )
