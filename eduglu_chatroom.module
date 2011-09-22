@@ -98,16 +98,21 @@ code;
 /*
  * Function for posting info to node.js server.
  */
+// TODO move url to config page.
 function eduglu_chatroom_post($method, $data) {
   // Set some paramenters for sending request.
   $request_url = 'http://localhost:3000/drupal';
   $request_headers = array('Content-Type' => 'application/json');
   $request_method = 'POST';
   $request_retry = 3;
+  $data['api_key'] = 'alsdjflaj24lj23l4j23ljljasdlfjasdf';
+
   $data = array(
     'method' => $method,
     'data' => $data,
   );
+
+
   $json_data = drupal_to_js($data);
 
   // Send the request.

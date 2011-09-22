@@ -71,15 +71,18 @@ app.all '/chats', (req, res) ->
 
 # Respond to directions from Drupal.
 app.post '/drupal', (req, res) ->
-  exports[req.body.method](req.body.data)
-  res.send 'ok'
+  # Check for an api key match.
+  if config.drupal.api_key is req.body.data.api_key
+    exports[req.body.method](req.body.data)
+    res.send 'ok'
+  else
+    res.send 'bad api_key'
 
 exports.newUser = (data) ->
   rclient.hset('userkey:' + data.key, 'uid', data.uid, redis.print)
   rclient.hset('userkey:' + data.key, 'group', data.group, redis.print)
 
 exports.addGroupie = (data) ->
-  console.log 'new groupie: ' + data
   io.sockets.in(data.group).emit 'add groupie', data
 
 exports.remGroupie = (data) ->
