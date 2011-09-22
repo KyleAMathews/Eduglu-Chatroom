@@ -114,29 +114,50 @@ function eduglu_chatroom_post($method, $data) {
 }
 
 function eduglu_chatroom_get_user($uid) {
-  static $users;
-  if (!isset($users)) {
+  static $user;
+  if (!isset($user)) {
     if ($cache = cache_get('user_data_' . $uid) && !empty($cache->data)) {
-      $users = unserialize($cache->data);
+      $user = unserialize($cache->data);
     }
     else {
-      $space = spaces_get_space();
       $results = db_query("SELECT u.uid, u.picture as pic, r.realname as name
         FROM realname r
         INNER JOIN users u
         WHERE r.uid = u.uid
         AND u.uid = %d", $uid);
 
-      $users = array();
+      $user = array();
       while ($row = db_fetch_object($results)) {
         $row->pic = eduglu_core_create_imagecache_url($row->pic,
           '25x25_crop', 'connected-users');
         $row->id = $row->uid;
-        $users[] = $row;
+        $user = $row;
       }
     }
   }
 
-  drupal_json($users);
-  exit();
+  return $user;
+}
+
+/*
+ * Implementation of hook_og().
+ */
+function eduglu_chatroom_og($op, $gid, $uid, $args) {
+  $account = user_load($uid);
+  $group_node = node_load($gid);
+  switch ($op) {
+    case 'user insert':
+      $method = "addGroupie";
+      $data = eduglu_chatroom_get_user($uid);
+      $data->group = $gid;
+      eduglu_chatroom_post($method, $data);
+      break;
+
+    case 'user delete':
+      $method = "remGroupie";
+      $data->uid = $uid;
+      $data->group = $gid;
+      eduglu_chatroom_post($method, $data);
+      break;
+  }
 }

@@ -71,7 +71,13 @@ app.post '/drupal', (req, res) ->
 exports.newUser = (data) ->
   rclient.hset('userkey:' + data.key, 'uid', data.uid, redis.print)
   rclient.hset('userkey:' + data.key, 'group', data.group, redis.print)
-  io.sockets.emit 'chat', uid:data.uid, body: JSON.stringify(data) # Temp
+
+exports.addGroupie = (data) ->
+  console.log 'new groupie: ' + data
+  io.sockets.in(data.group).emit 'add groupie', data
+
+exports.remGroupie = (data) ->
+  io.sockets.in(data.group).emit 'rem groupie', data
 
 io.sockets.on 'connection', (socket) ->
 
