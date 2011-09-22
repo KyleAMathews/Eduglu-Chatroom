@@ -8,6 +8,7 @@ MainRouter = require('routers/main_router').MainRouter
 HomeView   = require('views/home_view').HomeView
 ChatsView  = require('views/chats_view').ChatsView
 Chat       = require('models/chat').Chat
+User       = require('models/user').User
 Chats      = require('collections/chats').Chats
 Users      = require('collections/users').Users
 
@@ -16,6 +17,7 @@ $(document).ready ->
   app.initialize = ->
     app.routers.main = new MainRouter()
     app.models.chat = Chat
+    app.models.user = User
 
     # Load users for this group.
     app.collections.users = new Users()
@@ -62,7 +64,7 @@ $(document).ready ->
   socket.on 'leave', (uid) ->
     app.collections.users.get(uid).set( connected: false )
 
-# Helper functions
+################# Helper functions
 
 # Create a cookie with the specified name and value.
 window.SetCookie = (sName, sValue) ->

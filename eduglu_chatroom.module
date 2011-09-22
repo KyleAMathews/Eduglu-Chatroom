@@ -16,19 +16,18 @@ function eduglu_chatroom_menu() {
     'type' => MENU_NORMAL_ITEM,
     'menu_name' => 'features',
   );
+  $items['eduglu_chatroom/users'] = array(
+    'page callback' => 'eduglu_chatroom_get_user',
+    'page arguments' => array(2),
+    'access callback' => 'spaces_access_feature',
+    'access arguments' => array('view', 'eduglu_chatroom'),
+    'type' => MENU_CALLBACK,
+  );
   return $items;
 }
 
 function eduglu_chatroom_load() {
   global $user;
-
-  drupal_add_css(drupal_get_path('module', 'eduglu_chatroom') . '/brunch/build/web/css/main.css', 'module');
-  drupal_add_js(drupal_get_path('module', 'eduglu_chatroom') . '/brunch/build/web/js/app.js', 'module');
-  drupal_add_js("require('main')", 'inline');
-  $load_socketio = <<<code
-<script src="http://localhost:3000/socket.io/socket.io.js"></script>
-code;
-  drupal_set_html_head($load_socketio);
 
   # Chatroom settings
   $space = spaces_get_space();
@@ -48,6 +47,20 @@ code;
     $users[] = $row;
   }
 
+  // Check if the current user is in the array. If not return,
+  // you have to be a member of the group to chat.
+  // This is a pretty silly restriction but it's a somewhat complicated edge
+  // case to account for and this is an experiment.
+  $match = TRUE;
+  foreach ($users as $u) {
+    if ($u->uid === $user->uid) {
+      $match = FALSE;
+    }
+  }
+  if ($match) {
+    return "You must join this group first before chatting.";
+  }
+
   $key = rand(0, getrandmax());
   setcookie('rediskey', $key);
   $settings = array(
@@ -59,6 +72,14 @@ code;
       ),
     )
   );
+
+  drupal_add_css(drupal_get_path('module', 'eduglu_chatroom') . '/brunch/build/web/css/main.css', 'module');
+  drupal_add_js(drupal_get_path('module', 'eduglu_chatroom') . '/brunch/build/web/js/app.js', 'module');
+  drupal_add_js("require('main')", 'inline');
+  $load_socketio = <<<code
+<script src="http://localhost:3000/socket.io/socket.io.js"></script>
+code;
+  drupal_set_html_head($load_socketio);
 
   drupal_add_js($settings, 'setting');
 
@@ -90,4 +111,32 @@ function eduglu_chatroom_post($method, $data) {
   // Send the request.
   $result = drupal_http_request($request_url, $request_headers, $request_method, $json_data, $request_retry);
   /* print_r($result);*/
+}
+
+function eduglu_chatroom_get_user($uid) {
+  static $users;
+  if (!isset($users)) {
+    if ($cache = cache_get('user_data_' . $uid) && !empty($cache->data)) {
+      $users = unserialize($cache->data);
+    }
+    else {
+      $space = spaces_get_space();
+      $results = db_query("SELECT u.uid, u.picture as pic, r.realname as name
+        FROM realname r
+        INNER JOIN users u
+        WHERE r.uid = u.uid
+        AND u.uid = %d", $uid);
+
+      $users = array();
+      while ($row = db_fetch_object($results)) {
+        $row->pic = eduglu_core_create_imagecache_url($row->pic,
+          '25x25_crop', 'connected-users');
+        $row->id = $row->uid;
+        $users[] = $row;
+      }
+    }
+  }
+
+  drupal_json($users);
+  exit();
 }

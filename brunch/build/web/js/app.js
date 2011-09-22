@@ -2091,6 +2091,7 @@
   exports.Users = (function() {
     __extends(Users, Backbone.Collection);
     function Users() {
+      this.connected = __bind(this.connected, this);
       this.currentUserUID = __bind(this.currentUserUID, this);
       Users.__super__.constructor.apply(this, arguments);
     }
@@ -2099,11 +2100,16 @@
     Users.prototype.currentUserUID = function() {
       return this.currentUser.get("uid");
     };
+    Users.prototype.connected = function() {
+      return this.filter(function(user) {
+        return user.get("connected") === true;
+      });
+    };
     return Users;
   })();
 }).call(this);
 }, "main": function(exports, require, module) {(function() {
-  var Chat, Chats, ChatsView, HomeView, MainRouter, Users;
+  var Chat, Chats, ChatsView, HomeView, MainRouter, User, Users;
   window.app = {};
   app.routers = {};
   app.models = {};
@@ -2113,12 +2119,14 @@
   HomeView = require('views/home_view').HomeView;
   ChatsView = require('views/chats_view').ChatsView;
   Chat = require('models/chat').Chat;
+  User = require('models/user').User;
   Chats = require('collections/chats').Chats;
   Users = require('collections/users').Users;
   $(document).ready(function() {
     app.initialize = function() {
       app.routers.main = new MainRouter();
       app.models.chat = Chat;
+      app.models.user = User;
       app.collections.users = new Users();
       app.collections.users.reset(Drupal.settings.chatroom.group.users);
       app.collections.chats = new Chats();
@@ -2401,6 +2409,52 @@
   }).call(__obj);
   __obj.safe = __objSafe, __obj.escape = __escape;
   return __out.join('');
+}}, "templates/user": function(exports, require, module) {module.exports = function(__obj) {
+  if (!__obj) __obj = {};
+  var __out = [], __capture = function(callback) {
+    var out = __out, result;
+    __out = [];
+    callback.call(this);
+    result = __out.join('');
+    __out = out;
+    return __safe(result);
+  }, __sanitize = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else if (typeof value !== 'undefined' && value != null) {
+      return __escape(value);
+    } else {
+      return '';
+    }
+  }, __safe, __objSafe = __obj.safe, __escape = __obj.escape;
+  __safe = __obj.safe = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else {
+      if (!(typeof value !== 'undefined' && value != null)) value = '';
+      var result = new String(value);
+      result.ecoSafe = true;
+      return result;
+    }
+  };
+  if (!__escape) {
+    __escape = __obj.escape = function(value) {
+      return ('' + value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    };
+  }
+  (function() {
+    (function() {
+      __out.push(this.user.get('pic'));
+      __out.push('\n');
+    }).call(this);
+    
+  }).call(__obj);
+  __obj.safe = __objSafe, __obj.escape = __escape;
+  return __out.join('');
 }}, "views/chat_view": function(exports, require, module) {(function() {
   var chatTemplate;
   var __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; }, __hasProp = Object.prototype.hasOwnProperty, __extends = function(child, parent) {
@@ -2491,8 +2545,48 @@
     return ChatsView;
   })();
 }).call(this);
+}, "views/connected_view": function(exports, require, module) {(function() {
+  var Users, userTemplate;
+  var __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; }, __hasProp = Object.prototype.hasOwnProperty, __extends = function(child, parent) {
+    for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; }
+    function ctor() { this.constructor = child; }
+    ctor.prototype = parent.prototype;
+    child.prototype = new ctor;
+    child.__super__ = parent.prototype;
+    return child;
+  };
+  Users = require('collections/users').Users;
+  userTemplate = require('templates/user');
+  exports.ConnectedView = (function() {
+    __extends(ConnectedView, Backbone.View);
+    function ConnectedView() {
+      this.render = __bind(this.render, this);
+      ConnectedView.__super__.constructor.apply(this, arguments);
+    }
+    ConnectedView.prototype.initialize = function() {
+      this.el = $('#boxes-box-chatroom_connected');
+      this.collection.bind('change:connected', this.render);
+      return this.collection.bind('reset', this.render);
+    };
+    ConnectedView.prototype.render = function() {
+      var user, _i, _len, _ref, _results;
+      $(this.el).empty();
+      $(this.el).append('<h2>Connected</h2>');
+      _ref = this.collection.connected();
+      _results = [];
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        user = _ref[_i];
+        _results.push($(this.el).append(userTemplate({
+          user: user
+        })));
+      }
+      return _results;
+    };
+    return ConnectedView;
+  })();
+}).call(this);
 }, "views/home_view": function(exports, require, module) {(function() {
-  var ChatsView, homeTemplate;
+  var ChatsView, ConnectedView, homeTemplate;
   var __hasProp = Object.prototype.hasOwnProperty, __extends = function(child, parent) {
     for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; }
     function ctor() { this.constructor = child; }
@@ -2503,6 +2597,7 @@
   };
   homeTemplate = require('templates/home');
   ChatsView = require('views/chats_view').ChatsView;
+  ConnectedView = require('views/connected_view').ConnectedView;
   exports.HomeView = (function() {
     __extends(HomeView, Backbone.View);
     function HomeView() {
@@ -2510,7 +2605,7 @@
     }
     HomeView.prototype.id = 'home-view';
     HomeView.prototype.render = function() {
-      var chatsView;
+      var chatsView, connectedView;
       $(this.el).html(homeTemplate({
         name: Drupal.settings.chatroom.group.name
       }));
@@ -2518,6 +2613,10 @@
         collection: app.collections.chats
       });
       $(this.el).append(chatsView.render().el);
+      connectedView = new ConnectedView({
+        collection: app.collections.users
+      });
+      connectedView.render();
       return this;
     };
     return HomeView;

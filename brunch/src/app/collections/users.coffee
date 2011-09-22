@@ -7,3 +7,7 @@ class exports.Users extends Backbone.Collection
 
   currentUserUID: =>
     return @currentUser.get("uid")
+
+  connected: =>
+    @filter (user) ->
+      return user.get("connected") is true
