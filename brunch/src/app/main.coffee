@@ -93,3 +93,16 @@ window.GetCookie = (sName) ->
 
     # a cookie with the requested name does not exist
   return null
+
+# Function for generating an ISO 8601 complient data string.
+# From https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Date
+window.ISODateString = (d) ->
+  pad = (n) ->
+    if n<10 then '0'+n else n
+  p = d.getUTCFullYear()+'-'
+  p += pad(d.getUTCMonth()+1)+'-'
+  p += pad(d.getUTCDate())+'T'
+  p += pad(d.getUTCHours())+':'
+  p += pad(d.getUTCMinutes())+':'
+  p += pad(d.getUTCSeconds())+'Z'
+  return p

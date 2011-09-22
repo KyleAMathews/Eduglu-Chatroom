@@ -2208,6 +2208,23 @@
     }
     return null;
   };
+  window.ISODateString = function(d) {
+    var p, pad;
+    pad = function(n) {
+      if (n < 10) {
+        return '0' + n;
+      } else {
+        return n;
+      }
+    };
+    p = d.getUTCFullYear() + '-';
+    p += pad(d.getUTCMonth() + 1) + '-';
+    p += pad(d.getUTCDate()) + 'T';
+    p += pad(d.getUTCHours()) + ':';
+    p += pad(d.getUTCMinutes()) + ':';
+    p += pad(d.getUTCSeconds()) + 'Z';
+    return p;
+  };
 }).call(this);
 }, "models/chat": function(exports, require, module) {(function() {
   var __hasProp = Object.prototype.hasOwnProperty, __extends = function(child, parent) {
@@ -2545,13 +2562,22 @@
       return this;
     };
     ChatsView.prototype.sendChat = function(e) {
+      var d, date;
       if (e.keyCode !== 13) {
         return;
       }
       if ($(e.target).val() === "") {
         return;
       }
+      d = new Date();
+      date = "";
+      if (typeof d.toISOString === 'function') {
+        date = d.toISOString();
+      } else {
+        date = ISODateString(d);
+      }
       socket.emit('chat', {
+        date: date,
         body: $(e.target).val()
       });
       return $(e.target).val('');

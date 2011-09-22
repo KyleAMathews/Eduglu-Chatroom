@@ -28,7 +28,14 @@ class exports.ChatsView extends Backbone.View
   sendChat: (e) =>
     return if e.keyCode isnt 13
     return if $(e.target).val() is ""
+    d = new Date()
+    date = ""
+    if typeof d.toISOString is 'function'
+      date = d.toISOString()
+    else
+      date = ISODateString(d)
     socket.emit('chat',
+      date: date
       body: $(e.target).val()
     )
     $(e.target).val('')
