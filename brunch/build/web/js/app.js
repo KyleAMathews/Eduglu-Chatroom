@@ -2130,12 +2130,7 @@
       app.collections.users = new Users();
       app.collections.users.reset(Drupal.settings.chatroom.group.users);
       app.collections.chats = new Chats();
-      app.collections.chats.fetch({
-        data: {
-          gid: Drupal.settings.chatroom.group.nid,
-          key: GetCookie('rediskey')
-        }
-      });
+      app.collections.chats.reset(Drupal.settings.chatroom.group.chats);
       app.views.home = new HomeView({
         el: '#main-content'
       });
@@ -2243,7 +2238,7 @@
     Chat.prototype.defaults = {
       uid: 1,
       body: "",
-      time: ""
+      date: ""
     };
     return Chat;
   })();

@@ -64,12 +64,6 @@ app.all '/chats', (req, res) ->
     req.header('origin'))
   res.header("Access-Control-Allow-Headers", "X-Requested-With")
   res.header("X-Powered-By","nodejs")
-  rclient.lrange('chats:' + req.param('gid'), 0, 100, (err, reply) ->
-    chats = []
-    for chat in reply
-      chats.unshift(JSON.parse(chat))
-    res.send chats
-  )
 
 # Respond to directions from Drupal.
 app.post '/drupal', (req, res) ->
@@ -96,11 +90,18 @@ io.sockets.on 'connection', (socket) ->
   socket.on 'chat', (data) ->
     socket.get 'key', (err, key) ->
       rclient.hgetall 'userkey:' + key, (err, res) ->
+        # Send chat to groupies.
         io.sockets.in(res.group).emit 'chat',
           uid: res.uid, body: data.body
-        # Save chats to Redis
+        # Save chats to MySQL
+        myclient.query(
+          'INSERT INTO eduglu_chatroom_chats
+           SET uid = ?, gid = ?, date = ?, body = ?'
+           [res.uid, res.group, data.date, data.body]
+        )
         data.uid = res.uid
         rclient.lpush('chats:' + res.group, JSON.stringify(data))
+
         # Index chats in ElasticSearch.
         data.group = res.group
         eclient.index('chatroom', 'chat', data)

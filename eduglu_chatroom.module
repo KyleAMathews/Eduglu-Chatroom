@@ -31,6 +31,19 @@ function eduglu_chatroom_load() {
 
   # Chatroom settings
   $space = spaces_get_space();
+
+  $chats_results = db_query("SELECT uid, date, body
+                             FROM eduglu_chatroom_chats
+                             WHERE gid = %d
+                             ORDER BY date DESC
+                             LIMIT 50", $space->group->nid);
+
+  $chats = array();
+  while ($row = db_fetch_array($chats_results)) {
+    $chats[] = $row;
+  }
+  $chats = array_reverse($chats);
+
   # Todo once chats are stored in mysql, join that table as well to get all
   # additional ids that could of been used in the past.
   $results = db_query("SELECT u.uid, u.picture as pic, r.realname as name
@@ -71,6 +84,7 @@ function eduglu_chatroom_load() {
         'name' => $space->group->title,
         'nid' => $space->group->nid,
         'users' => $users,
+        'chats' => $chats,
       ),
     )
   );
