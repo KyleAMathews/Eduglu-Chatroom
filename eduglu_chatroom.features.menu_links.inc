@@ -3,7 +3,7 @@
 /**
  * Implementation of hook_menu_default_menu_links().
  */
-function eduglu_book_menu_default_menu_links() {
+function eduglu_chatroom_menu_default_menu_links() {
   $menu_links = array();
 
   // Exported menu link: features:chatroom
