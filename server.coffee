@@ -1,3 +1,5 @@
+config = require('./config')
+console.log config
 express = require('express')
 app = express.createServer()
 io = require('socket.io').listen(app)
@@ -19,10 +21,10 @@ io.configure( ->
 
 mysql = require('mysql')
 myclient = mysql.createClient(
-  user: 'root'
-  password: 'password'
+  user: config.mysql.user_name
+  password: config.mysql.password
 )
-myclient.query('USE island_byu_edu')
+myclient.query('USE ' + config.mysql.database)
 
 redis = require 'redis'
 rclient = redis.createClient()
@@ -64,6 +66,7 @@ app.all '/chats', (req, res) ->
     res.send chats
   )
 
+# Respond to directions from Drupal.
 app.post '/drupal', (req, res) ->
   exports[req.body.method](req.body.data)
   res.send 'ok'
@@ -79,6 +82,7 @@ exports.addGroupie = (data) ->
 exports.remGroupie = (data) ->
   io.sockets.in(data.group).emit 'rem groupie', data
 
+# Sockets.io code.
 io.sockets.on 'connection', (socket) ->
 
   socket.on 'chat', (data) ->
