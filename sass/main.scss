@@ -11,6 +11,9 @@
   #context-links {
     margin: 0;
   }
+  .feed-icon {
+     display: none;
+   }
   #sidebar-right {
     @include leader(1);
     padding: 0;
