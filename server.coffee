@@ -1,5 +1,6 @@
 config = require('./config')
-console.log config
+
+# Setup Express and Socket.io.
 express = require('express')
 app = express.createServer()
 io = require('socket.io').listen(app)
@@ -19,6 +20,7 @@ io.configure( ->
   )
 )
 
+# Setup Mysql.
 mysql = require('mysql')
 myclient = mysql.createClient(
   user: config.mysql.user_name

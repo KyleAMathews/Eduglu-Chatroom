@@ -78,6 +78,7 @@ function eduglu_chatroom_load() {
   drupal_add_css(drupal_get_path('module', 'eduglu_chatroom') . '/stylesheets/main.css', 'module');
   drupal_add_js(drupal_get_path('module', 'eduglu_chatroom') . '/brunch/build/web/js/app.js', 'module');
   drupal_add_js("require('main')", 'inline');
+  // TODO move the socket.io url to a settings page.
   $load_socketio = <<<code
 <script src="http://localhost:3000/socket.io/socket.io.js"></script>
 code;
@@ -168,3 +169,5 @@ function eduglu_chatroom_og($op, $gid, $uid, $args) {
       break;
   }
 }
+// TODO Add user profile integration so when someone updates their name, that change
+// will be pushed automagically to all their groups.
