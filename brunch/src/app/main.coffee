@@ -49,7 +49,7 @@ $(document).ready ->
     Drupal.settings.chatroom.group.nid = data
 
   socket.on 'chat', (data) ->
-    chat = new Chat( body: data.body, uid: data.uid )
+    chat = new Chat( body: data.body, uid: data.uid, date: data.date )
     app.collections.chats.add(chat)
 
   socket.on 'join', (uids) ->

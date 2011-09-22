@@ -92,7 +92,7 @@ io.sockets.on 'connection', (socket) ->
       rclient.hgetall 'userkey:' + key, (err, res) ->
         # Send chat to groupies.
         io.sockets.in(res.group).emit 'chat',
-          uid: res.uid, body: data.body
+          uid: res.uid, body: data.body, date: data.date
         # Save chats to MySQL
         myclient.query(
           'INSERT INTO eduglu_chatroom_chats

@@ -4,5 +4,6 @@
 </div>
 <div class="text">
   <%= @model.get('body') %>
+  <span class="humaneDate" title="<%- @model.get('date') %>"><%- @model.get('date') %></span>
 </div>
 <div style="clear:both"></div>

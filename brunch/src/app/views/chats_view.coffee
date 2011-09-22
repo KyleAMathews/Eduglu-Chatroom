@@ -18,6 +18,7 @@ class exports.ChatsView extends Backbone.View
     )
     @collection.each (chat) =>
       @addOne(chat)
+    setInterval((-> $('span.humaneDate').humaneDates()), 5000)
     @
 
   addOne: (chat) =>

@@ -55,6 +55,14 @@
           padding-left: .75em;
           padding-right: .75em;
           @include adjust-font-size-to(12px);
+          .humaneDate {
+            float: right;
+            padding: 3px;
+            @include adjust-font-size-to(9px);
+            @include border-radius(3px);
+            background: white;
+            line-height: 1;
+          }
         }
       }
     }
