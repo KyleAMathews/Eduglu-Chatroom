@@ -10,6 +10,6 @@ class exports.ConnectedView extends Backbone.View
 
   render: =>
     $(@el).empty()
-    $(@el).append('<h2>Connected</h2>')
+    $(@el).append('<h2>Connected (' + @collection.connected().length + ')</h2>')
     for user in @collection.connected()
       $(@el).append userTemplate( user: user )

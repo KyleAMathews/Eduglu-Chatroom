@@ -64,6 +64,13 @@ $(document).ready ->
   socket.on 'leave', (uid) ->
     app.collections.users.get(uid).set( connected: false )
 
+  socket.on 'add groupie', (data) ->
+    newUser = new app.models.user(data)
+    app.collections.users.add(newUser)
+
+  socket.on 'rem groupie', (data) ->
+    app.collections.users.remove(parseInt(data.uid))
+
 ################# Helper functions
 
 # Create a cookie with the specified name and value.

@@ -31,6 +31,8 @@ function eduglu_chatroom_load() {
 
   # Chatroom settings
   $space = spaces_get_space();
+  # Todo once chats are stored in mysql, join that table as well to get all
+  # additional ids that could of been used in the past.
   $results = db_query("SELECT u.uid, u.picture as pic, r.realname as name
     FROM og_uid o
     INNER JOIN realname r
@@ -73,7 +75,7 @@ function eduglu_chatroom_load() {
     )
   );
 
-  drupal_add_css(drupal_get_path('module', 'eduglu_chatroom') . '/brunch/build/web/css/main.css', 'module');
+  drupal_add_css(drupal_get_path('module', 'eduglu_chatroom') . '/stylesheets/main.css', 'module');
   drupal_add_js(drupal_get_path('module', 'eduglu_chatroom') . '/brunch/build/web/js/app.js', 'module');
   drupal_add_js("require('main')", 'inline');
   $load_socketio = <<<code

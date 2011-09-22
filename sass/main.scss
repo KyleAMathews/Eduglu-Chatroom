@@ -1,0 +1,63 @@
+/* Welcome to Compass.
+ * In this file you should write your main styles. (or centralize your imports)
+ * Import this file using the following HTML or equivalent:
+ * <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css" /> */
+
+@import "compass";
+
+.page-chatroom {
+  $base-font-size: 13px;
+  $base-line-height: 1.5 * $base-font-size;
+  #context-links {
+    margin: 0;
+  }
+  #sidebar-right {
+    @include leader(1);
+    padding: 0;
+    background: none;
+  }
+  #main-content {
+    #chats {
+      .chat {
+        font-family: Verdana, Arial, sans-serif;
+        @include leader(.5);
+        @include trailer(.5);
+        clear:both;
+        list-style-image: none;
+        list-style-type: none;
+        margin-left: 0px;
+        .user {
+          float: left;
+          width: 15%;
+          .name {
+            float:right;
+            @include adjust-font-size-to(9px);
+            overflow: hidden;
+            margin-top: .9em;
+          }
+          img {
+            float:right;
+            padding-left: 5px;
+            padding-right: 5px;
+            @include leader(.5);
+          }
+        }
+        .text {
+          width: 82%;
+          word-wrap: break-word;
+          float:left;
+          @include border-radius(5px);
+          background-color: #f6f6f6;
+          @include rhythm(0, .5, .5);
+          padding-left: .75em;
+          padding-right: .75em;
+          @include adjust-font-size-to(12px);
+        }
+      }
+    }
+    .enter-chat {
+      margin-left: 116px;
+      width: 75%;
+    }
+  }
+}

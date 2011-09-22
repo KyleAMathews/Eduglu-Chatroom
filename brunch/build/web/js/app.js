@@ -2176,10 +2176,18 @@
       }
       return _results;
     });
-    return socket.on('leave', function(uid) {
+    socket.on('leave', function(uid) {
       return app.collections.users.get(uid).set({
         connected: false
       });
+    });
+    socket.on('add groupie', function(data) {
+      var newUser;
+      newUser = new app.models.user(data);
+      return app.collections.users.add(newUser);
+    });
+    return socket.on('rem groupie', function(data) {
+      return app.collections.users.remove(parseInt(data.uid));
     });
   });
   window.SetCookie = function(sName, sValue) {
@@ -2307,11 +2315,13 @@
   }
   (function() {
     (function() {
+      __out.push('<div class=\'user\'>\n  ');
       __out.push(this.user.get("pic"));
-      __out.push(__sanitize(this.user.get('name')));
-      __out.push(' ');
+      __out.push('\n  <span class="name">');
+      __out.push(__sanitize(this.user.get('shortname')));
+      __out.push('</span>\n</div>\n<div class="text">\n  ');
       __out.push(__sanitize(this.model.get('body')));
-      __out.push('\n');
+      __out.push('\n</div>\n<div style="clear:both"></div>\n');
     }).call(this);
     
   }).call(__obj);
@@ -2401,9 +2411,7 @@
   }
   (function() {
     (function() {
-      __out.push('<h1>');
-      __out.push(__sanitize(this.name));
-      __out.push('\'s lovely chatroom</h1>\n');
+    
     }).call(this);
     
   }).call(__obj);
@@ -2475,8 +2483,14 @@
     ChatView.prototype.className = 'chat';
     ChatView.prototype.tagName = 'li';
     ChatView.prototype.render = function() {
-      var user;
+      var newName, split, user;
       user = app.collections.users.get(this.model.get("uid"));
+      split = user.get("name").split(' ');
+      newName = split.slice(0, 1)[0].split('')[0];
+      newName += ". " + split.pop();
+      user.set({
+        shortname: newName
+      });
       $(this.el).html(chatTemplate({
         model: this.model,
         user: user
@@ -2571,7 +2585,7 @@
     ConnectedView.prototype.render = function() {
       var user, _i, _len, _ref, _results;
       $(this.el).empty();
-      $(this.el).append('<h2>Connected</h2>');
+      $(this.el).append('<h2>Connected (' + this.collection.connected().length + ')</h2>');
       _ref = this.collection.connected();
       _results = [];
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
