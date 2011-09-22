@@ -1,0 +1,66 @@
+<?php
+/**
+ * Implementation of hook_install().
+ */
+function eduglu_chatroom_install() {
+  $success = drupal_install_schema('eduglu_chatroom');
+
+  if ($success) {
+    drupal_set_message(st('The Eduglu Chatroom module installed tables successfully.'));
+  }
+}
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function eduglu_chatroom_uninstall() {
+  drupal_uninstall_schema('eduglu_chatroom');
+  $result = db_query("SELECT name FROM {variable} WHERE name LIKE 'eduglu_chatroom_%'");
+  while ($row = db_fetch_object($result)) {
+    variable_del($row->name);
+  }
+
+  drupal_set_message(t('Eduglu Chatroom has been uninstalled.'));
+}
+
+/**
+ * Implementation of hook_schema().
+ */
+function eduglu_chatroom_schema() {
+  $schema = array();
+
+  $schema['eduglu_chatroom_chats'] = array(
+    'fields' => array(
+      'uid' => array(
+        'description' => 'The uid of the chatter.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0),
+      'gid' => array(
+        'description' => 'The gid of the group where the message was posted.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0),
+      'date' => array(
+        'description' => 'ISO 8601 time',
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => TRUE,
+        'default' => ''),
+      'body' => array(
+        'description' => 'The body of this version.',
+        'type' => 'text',
+        'not null' => TRUE,
+        'size' => 'big')
+    ),
+    'indexes' => array(
+      'grp' => array('gid'),
+      'date' => array('date'),
+    ),
+  );
+
+  return $schema;
+
+}
