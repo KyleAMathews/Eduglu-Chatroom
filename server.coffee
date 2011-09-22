@@ -26,18 +26,21 @@ myclient = mysql.createClient(
 )
 myclient.query('USE ' + config.mysql.database)
 
+# Setup Redis.
 redis = require 'redis'
 rclient = redis.createClient()
+
+# Setup ElasticSearch.
+elastical = require 'elastical'
+eclient = new elastical.Client()
 
 # Clear out ephemeral data on reboot.
 rclient.keys("connected:*", (err, res) ->
   for key in res
-    console.log "deleting " + key
     rclient.del(key, redis.print)
 )
 rclient.keys("userkey:*", (err, res) ->
   for key in res
-    console.log "deleting " + key
     rclient.del(key, redis.print)
 )
 
@@ -93,6 +96,9 @@ io.sockets.on 'connection', (socket) ->
         # Save chats to Redis
         data.uid = res.uid
         rclient.lpush('chats:' + res.group, JSON.stringify(data))
+        # Index chats in ElasticSearch.
+        data.group = res.group
+        eclient.index('chatroom', 'chat', data)
 
   socket.on 'auth', (key) ->
     # Retrieve the user ID and group ID from Redis and
