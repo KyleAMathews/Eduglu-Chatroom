@@ -23,6 +23,14 @@ function eduglu_chatroom_menu() {
     'access arguments' => array('view', 'eduglu_chatroom'),
     'type' => MENU_CALLBACK,
   );
+  # Administration
+  $items['admin/settings/eduglu-chatroom'] = array(
+    'title' => 'Eduglu Chatroom',
+    'description' => t('Administer grouproom settings'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('eduglu_chatroom_admin_settings'),
+    'access arguments' => array('access administration pages'),
+  );
   return $items;
 }
 
@@ -80,6 +88,7 @@ function eduglu_chatroom_load() {
   setcookie('rediskey', $key);
   $settings = array(
     'chatroom' => array(
+      'nodejs_url' => variable_get('eduglu_chatroom_nodejs_url', 'http://localhost:3000'),
       'group' => array(
         'name' => $space->group->title,
         'nid' => $space->group->nid,
@@ -92,10 +101,7 @@ function eduglu_chatroom_load() {
   drupal_add_css(drupal_get_path('module', 'eduglu_chatroom') . '/stylesheets/main.css', 'module');
   drupal_add_js(drupal_get_path('module', 'eduglu_chatroom') . '/brunch/build/web/js/app.js', 'module');
   drupal_add_js("require('main')", 'inline');
-  // TODO move the socket.io url to a settings page.
-  $load_socketio = <<<code
-<script src="http://localhost:3000/socket.io/socket.io.js"></script>
-code;
+  $load_socketio = '<script src="' . variable_get("eduglu_chatroom_nodejs_url", "http://localhost:3000") . '/socket.io/socket.io.js"></script>';
   drupal_set_html_head($load_socketio);
 
   drupal_add_js($settings, 'setting');
@@ -116,11 +122,11 @@ code;
 // TODO move url to config page.
 function eduglu_chatroom_post($method, $data) {
   // Set some paramenters for sending request.
-  $request_url = 'http://localhost:3000/drupal';
+  $request_url = variable_get('eduglu_chatroom_nodejs_url', 'http://localhost:3000') . '/drupal';
   $request_headers = array('Content-Type' => 'application/json');
   $request_method = 'POST';
   $request_retry = 3;
-  $data['api_key'] = 'alsdjflaj24lj23l4j23ljljasdlfjasdf';
+  $data['api_key'] = variable_get('eduglu_chatroom_api_key', '');
 
   $data = array(
     'method' => $method,
@@ -185,6 +191,34 @@ function eduglu_chatroom_og($op, $gid, $uid, $args) {
 }
 // TODO Add user profile integration so when someone updates their name, that change
 // will be pushed automagically to all their groups.
+
+/**
+ * Admin settings form
+ */
+function eduglu_chatroom_admin_settings() {
+  // Save an api key if one isn't already created.
+  if ((variable_get('eduglu_chatroom_api_key', '')) == '') {
+    variable_set('eduglu_chatroom_api_key',  md5(rand()));
+  }
+
+  $form['eduglu_chatroom_api_key'] = array(
+    '#type'          => 'textfield',
+    '#title'         => t('API Key'),
+    '#default_value' => variable_get('eduglu_chatroom_api_key', md5(rand())),
+    '#required' => TRUE,
+    '#description' => t('This key is used to validate this Drupal install against the Node.js server. You should copy this key to the config.js file in the eduglu_chatroom directory.'),
+  );
+  $form['eduglu_chatroom_nodejs_url'] = array(
+    '#type'          => 'textfield',
+    '#title'         => t('Node.js URL'),
+    '#default_value' => variable_get('eduglu_chatroom_nodejs_url', 'http://localhost:3000'),
+    '#required' => TRUE,
+    '#description' => t('The URL (and port if the port isn\'t set to port 80) for your Node.js server.'),
+  );
+
+  return system_settings_form($form);
+}
+
 
 function _create_imagecache_url($uid, $picture, $preset, $class = "") {
   if (isset($picture) && module_exists('imagecache')) {

@@ -35,7 +35,7 @@ $(document).ready ->
   Backbone.history.start()
 
   # Initialize Socket.io.
-  window.socket = io.connect('http://localhost:3000')
+  window.socket = io.connect(Drupal.settings.chatroom.nodejs_url)
 
   socket.on 'connect', ->
     app.collections.users.currentUser =
