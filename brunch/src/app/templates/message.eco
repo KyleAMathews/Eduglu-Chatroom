@@ -1,0 +1,2 @@
+<%- @model.get('html') %>
+<span class="humaneDate" title="<%= @model.get('date') %>"><%= @model.get('date') %></span>

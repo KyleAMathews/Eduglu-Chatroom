@@ -1,9 +1,11 @@
 Chats = require('collections/chats').Chats
 chatView = require('views/chat_view').ChatView
 chatsTemplate = require('templates/chats')
+userContainerTemplate = require('templates/userContainer')
 
 class exports.ChatsView extends Backbone.View
   id: 'chats'
+  lastUserContainer = 0
 
   initialize: ->
     @collection.bind('add', @addOne)
@@ -23,7 +25,15 @@ class exports.ChatsView extends Backbone.View
 
   addOne: (chat) =>
     view = new chatView( model: chat )
-    @$('ul').append(view.render().el)
+    user = app.collections.users.get(chat.get('uid'))
+
+    # If user different than the last user, create a new user container.
+    if chat.get('uid') isnt @lastUserContainer
+      @$('ul').append(userContainerTemplate( user: user ))
+      @lastUserContainer = user.id
+
+    # Add the message to the current user container.
+    @$(".chat-messages").filter(":last").append( view.render().el )
     @
 
   sendChat: (e) =>

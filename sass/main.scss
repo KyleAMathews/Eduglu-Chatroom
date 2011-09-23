@@ -24,7 +24,7 @@
       p {
         margin: 0;
       }
-      .chat {
+      .user-container {
         position: relative;
         font-family: Verdana, Arial, sans-serif;
         @include leader(.5);
@@ -49,7 +49,7 @@
             @include leader(.5);
           }
         }
-        .text {
+        .chat-messages {
           width: 82%;
           word-wrap: break-word;
           float:left;
