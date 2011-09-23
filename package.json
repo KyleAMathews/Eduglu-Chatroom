@@ -1,0 +1,16 @@
+{
+  "author": "Kyle Mathews <mathews.kyle@gmail.com> (http://kyle.mathews2000.com)",
+  "name": "eduglu_chatroom",
+  "description": "Integrates with Drupal 6 and Organic Groups to provide a per-group chatroom",
+  "version": "0.0.1",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/KyleAMathews/Eduglu-Chatroom.git"
+  },
+  "main": "server.coffee",
+  "engines": {
+    "node": "v0.4.8"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}
