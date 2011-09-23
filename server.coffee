@@ -90,6 +90,7 @@ io.sockets.on 'connection', (socket) ->
   socket.on 'chat', (data) ->
     socket.get 'key', (err, key) ->
       rclient.hgetall 'userkey:' + key, (err, res) ->
+        unless res.uid? then return
         # Send chat to groupies.
         io.sockets.in(res.group).emit 'chat',
           uid: res.uid, body: data.body, date: data.date
