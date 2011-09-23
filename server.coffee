@@ -20,7 +20,7 @@ io.configure( ->
   )
 )
 
-# Setup Mysql.
+# Setup Mysql client.
 mysql = require('mysql')
 myclient = mysql.createClient(
   user: config.mysql.user_name
@@ -28,15 +28,15 @@ myclient = mysql.createClient(
 )
 myclient.query('USE ' + config.mysql.database)
 
-# Setup Redis.
+# Setup Redis client.
 redis = require 'redis'
 rclient = redis.createClient()
 
-# Setup ElasticSearch.
+# Setup ElasticSearch client.
 elastical = require 'elastical'
 eclient = new elastical.Client()
 
-# Clear out ephemeral data on reboot.
+# Clear out ephemeral data from Redis on reboot.
 rclient.keys("connected:*", (err, res) ->
   for key in res
     rclient.del(key, redis.print)
@@ -138,4 +138,4 @@ io.sockets.on 'connection', (socket) ->
         rclient.srem('connected:' + res.group, res.uid)
         rclient.del('userkey:' + key)
 
-app.listen 3000
+app.listen config.port
