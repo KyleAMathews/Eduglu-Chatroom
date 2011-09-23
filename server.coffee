@@ -20,6 +20,9 @@ io.configure( ->
   )
 )
 
+# Validator
+sanitize = require('validator').sanitize
+
 # Setup Mysql client.
 mysql = require('mysql')
 myclient = mysql.createClient(
@@ -91,20 +94,27 @@ io.sockets.on 'connection', (socket) ->
     socket.get 'key', (err, key) ->
       rclient.hgetall 'userkey:' + key, (err, res) ->
         unless res.uid? then return
+
+        # Neutralize xss attacks
+        data.body = sanitize(data.body).xss()
+
+        data.uid = res.uid
+        data.group = res.group
+
         # Send chat to groupies.
         io.sockets.in(res.group).emit 'chat',
-          uid: res.uid, body: data.body, date: data.date
+          uid: data.uid
+          body: data.body
+          date: data.date
+
         # Save chats to MySQL
         myclient.query(
           'INSERT INTO eduglu_chatroom_chats
-           SET uid = ?, gid = ?, date = ?, body = ?'
+           SET uid = ?, gid = ?, date = ?, body = ?',
            [res.uid, res.group, data.date, data.body]
         )
-        data.uid = res.uid
-        rclient.lpush('chats:' + res.group, JSON.stringify(data))
 
         # Index chats in ElasticSearch.
-        data.group = res.group
         eclient.index('chatroom', 'chat', data)
 
   socket.on 'auth', (key) ->
