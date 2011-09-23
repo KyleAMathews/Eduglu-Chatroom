@@ -107,16 +107,20 @@ window.ISODateString = (d) ->
 
 # Make window title blink on new messages.
 titleAlert = (uid, body) ->
+  # Clear out any old blinkers first.
+  if titleTimeOut?
+    clearInterval(titleTimeOut)
+    document.title = oldTitle
   user = app.collections.users.get(uid)
   msg = user.get('name') + ' said "' + body + '"'
-  oldTitle = document.title
-  timeoutId = setInterval((->
+  window.oldTitle = document.title
+  window.titleTimeOut = setInterval((->
     if document.title is msg
       document.title = oldTitle
     else
       document.title = msg),
     1000)
   window.onmousemove = ->
-    clearInterval(timeoutId)
+    clearInterval(titleTimeOut)
     document.title = oldTitle
     window.onmousemove = null
