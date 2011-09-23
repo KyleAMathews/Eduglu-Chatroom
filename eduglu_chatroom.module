@@ -56,7 +56,7 @@ function eduglu_chatroom_load() {
 
   $users = array();
   while ($row = db_fetch_object($results)) {
-    $row->pic = eduglu_core_create_imagecache_url($row->pic,
+    $row->pic = _create_imagecache_url($row->uid, $row->pic,
       '25x25_crop', 'connected-users');
     $row->id = $row->uid;
     $users[] = $row;
@@ -150,7 +150,7 @@ function eduglu_chatroom_get_user($uid) {
 
       $user = array();
       while ($row = db_fetch_object($results)) {
-        $row->pic = eduglu_core_create_imagecache_url($row->pic,
+        $row->pic = _create_imagecache_url($row->uid, $row->pic,
           '25x25_crop', 'connected-users');
         $row->id = $row->uid;
         $user = $row;
@@ -185,3 +185,24 @@ function eduglu_chatroom_og($op, $gid, $uid, $args) {
 }
 // TODO Add user profile integration so when someone updates their name, that change
 // will be pushed automagically to all their groups.
+
+function _create_imagecache_url($uid, $picture, $preset, $class = "") {
+  if (isset($picture) && module_exists('imagecache')) {
+    $attr = array('class' => $class);
+    $attr['class'] .= ' picture-'. $preset;
+    if (file_exists($picture)) {
+      $image = theme('imagecache', $preset, $picture);
+    }
+    else {
+      $default_image = variable_get('user_picture_default', '');
+      $image = theme("imagecache", $preset, $default_image);
+    }
+    if ($continue) {
+      continue;
+    }
+
+    $path = 'user/'. $uid;
+    return l($image, $path, array('attributes' => $attr,
+      'html' => true));
+  }
+}
