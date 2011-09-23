@@ -50,7 +50,7 @@ $(document).ready ->
 
   socket.on 'chat', (data) ->
     if parseInt(data.uid) isnt Drupal.settings.chatroom.currentUser
-      titleAlert() if data.uid isnt Drupal.settings.chatroom.currentUser
+      titleAlert(data.uid, data.body) if data.uid isnt Drupal.settings.chatroom.currentUser
     chat = new Chat( data )
     app.collections.chats.add(chat)
 
@@ -106,9 +106,10 @@ window.ISODateString = (d) ->
   return p
 
 # Make window title blink on new messages.
-titleAlert = ->
+titleAlert = (uid, body) ->
+  user = app.collections.users.get(uid)
+  msg = user.get('name') + ' said "' + body + '"'
   oldTitle = document.title
-  msg = "New message"
   timeoutId = setInterval((->
     if document.title is msg
       document.title = oldTitle
