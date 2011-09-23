@@ -8,6 +8,7 @@ class exports.ChatsView extends Backbone.View
   lastUserContainer = 0
 
   initialize: ->
+    @dateCount = 5
     @collection.bind('add', @addOne)
     @collection.bind('reset', @render)
 
@@ -20,6 +21,8 @@ class exports.ChatsView extends Backbone.View
     )
     @collection.each (chat) =>
       @addOne(chat)
+
+    # Refresh dates every five seconds.
     setInterval((-> $('span.humaneDate').humaneDates()), 5000)
     @
 
@@ -29,7 +32,16 @@ class exports.ChatsView extends Backbone.View
 
     # If user different than the last user, create a new user container.
     if chat.get('uid') isnt @lastUserContainer
-      @$('ul').append(userContainerTemplate( user: user ))
+      # Only add the Date every five user containers.
+      addDate = false
+      if @dateCount is 5
+        addDate = true
+        @dateCount = 1
+      else
+        @dateCount++
+
+      @$('ul').append userContainerTemplate( user: user, addDate: addDate, date: chat.get("date"))
+      @$('.humaneDate').humaneDates()
       @lastUserContainer = user.id
 
     # Add the message to the current user container.

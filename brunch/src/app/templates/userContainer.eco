@@ -3,6 +3,10 @@
     <%- @user.get("pic") %>
     <span class="name"><%= @user.get('shortname') %></span>
   </div>
-  <div class="chat-messages"></div>
+  <div class="chat-messages">
+    <% if @addDate: %>
+      <span class="humaneDate" title="<%= @date %>"><%= @date %></span>
+    <% end %>
+  </div>
   <div style="clear:both"></div>
 </li>
