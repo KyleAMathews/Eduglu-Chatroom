@@ -35,7 +35,13 @@ $(document).ready ->
   Backbone.history.start()
 
   # Initialize Socket.io.
-  window.socket = io.connect(Drupal.settings.chatroom.nodejs_url)
+  window.socket = io.connect(Drupal.settings.chatroom.nodejs_url,
+    'reconnect': true,
+    'reconnection delay': 500,
+    'max reconnection attempts': 20
+  )
+  # TODO on disconnect, set some sort of message to let client know there's problems
+  # plus disable the chat box.
 
   socket.on 'connect', ->
     app.collections.users.currentUser =
