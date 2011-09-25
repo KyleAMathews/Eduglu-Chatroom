@@ -18,6 +18,9 @@
     @include leader(1);
     padding: 0;
     background: none;
+    > div {
+      position: fixed;
+    }
   }
   #main-content {
     #chats {
