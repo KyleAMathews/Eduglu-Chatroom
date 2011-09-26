@@ -13,7 +13,7 @@ class exports.SettingsView extends Backbone.View
       @setMessage("You're connected!", 3, 'success')
       @setConnected()
 
-  setMessage: (message = '', timeout = 0, colorclass = 'success') ->
+  setMessage: (message = '', seconds = 0, colorclass = 'success') ->
     if message is ''
       $('#chat-message').slideUp('slow')
       return
@@ -24,8 +24,8 @@ class exports.SettingsView extends Backbone.View
       $('#chat-message').html(message)
       $('#chat-message').slideDown()
     )
-    if timeout isnt 0
-      setTimeout(@setMessage, timeout * 1000)
+    if seconds isnt 0
+      setTimeout((=> @setMessage()), seconds * 1000)
 
   setDisconnected: ->
     $('input.enter-chat').attr('disabled', 'disabled')
