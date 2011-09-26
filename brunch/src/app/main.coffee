@@ -44,8 +44,6 @@ $(document).ready ->
 
   # Initialize Socket.io.
 
-  # Disable the input until the client has connected
-  $('input.enter-chat').attr('disabled', 'disabled')
   window.socket = io.connect(Drupal.settings.chatroom.nodejs_url,
     'reconnect': true,
     'reconnection delay': 500,
