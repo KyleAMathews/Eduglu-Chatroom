@@ -39,12 +39,8 @@ rclient = redis.createClient()
 elastical = require 'elastical'
 eclient = new elastical.Client()
 
-# Clear out ephemeral data from Redis on reboot.
+# Clear out connected data from Redis on reboot.
 rclient.keys("connected:*", (err, res) ->
-  for key in res
-    rclient.del(key, redis.print)
-)
-rclient.keys("userkey:*", (err, res) ->
   for key in res
     rclient.del(key, redis.print)
 )

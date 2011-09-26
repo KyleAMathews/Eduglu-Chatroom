@@ -7,8 +7,10 @@ app.views = {}
 MainRouter = require('routers/main_router').MainRouter
 HomeView   = require('views/home_view').HomeView
 ChatsView  = require('views/chats_view').ChatsView
+SettingsView = require('views/settings_view').SettingsView
 Chat       = require('models/chat').Chat
 User       = require('models/user').User
+Settings   = require('models/settings').Settings
 Chats      = require('collections/chats').Chats
 Users      = require('collections/users').Users
 
@@ -16,8 +18,14 @@ Users      = require('collections/users').Users
 $(document).ready ->
   app.initialize = ->
     app.routers.main = new MainRouter()
+
+    # Set some models.
     app.models.chat = Chat
     app.models.user = User
+
+    # Load settings model/view
+    app.settings = new Settings()
+    app.settingsView = new SettingsView( model: app.settings )
 
     # Load users for this group.
     app.collections.users = new Users()
@@ -35,6 +43,9 @@ $(document).ready ->
   Backbone.history.start()
 
   # Initialize Socket.io.
+
+  # Disable the input until the client has connected
+  $('input.enter-chat').attr('disabled', 'disabled')
   window.socket = io.connect(Drupal.settings.chatroom.nodejs_url,
     'reconnect': true,
     'reconnection delay': 500,
@@ -42,11 +53,17 @@ $(document).ready ->
   )
   # TODO on disconnect, set some sort of message to let client know there's problems
   # plus disable the chat box.
+  # Implement events disconnect, reconnect, reconnect_failed -- when disconnect
+  # disable. On reconnect, set message saying we're back on then fade off after 5 seconds.
 
   socket.on 'connect', ->
+    app.settings.set(connection_status: 'connected')
     app.collections.users.currentUser =
       app.collections.users.get(Drupal.settings.chatroom.currentUser)
     socket.emit 'auth', GetCookie('rediskey')
+
+  socket.on 'disconnect', ->
+    app.settings.set(connection_status: 'disconnected')
 
   socket.on 'set uid', (data) ->
     Drupal.settings.chatroom.currentUser = data

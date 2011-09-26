@@ -21,6 +21,23 @@
     > div {
       position: fixed;
     }
+    #chat-message {
+      padding: 5px;
+    }
+    #connected {
+      margin-top: 10px;
+    }
+    .warning {
+      background-color: #FEEFB3;
+      color: #9F6000;
+    }
+    .success {
+      background-color: #DFF2BF;
+      color: #4F8A10;
+    }
+    .disconnected {
+      @include opacity(.4);
+    }
   }
   #main-content {
     #chats {
