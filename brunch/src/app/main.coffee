@@ -147,3 +147,15 @@ titleAlert = (uid, body) ->
     clearInterval(titleTimeOut)
     document.title = oldTitle
     window.onmousemove = null
+
+# Keep sidebar blocks fixed when scrolling.
+a = () ->
+  b = $(window).scrollTop()
+  d = $("#sidebar-right").offset({scroll:false}).top - 50
+  c = $("#sidebar-right > div")
+  if b > d
+    c.css( position:"fixed",top:"50px" )
+  else if b <= d
+    c.css( position:"relative",top:"" )
+
+$(window).scroll(a);a()
