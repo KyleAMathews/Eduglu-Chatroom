@@ -40,8 +40,14 @@ class exports.ChatsView extends Backbone.View
       else
         @dateCount++
 
-      @$('ul').append userContainerTemplate( user: user, addDate: addDate, date: chat.get("date"))
+      @$('ul').append(userContainerTemplate( user: user, addDate: addDate, date: chat.get("date")))
+
+      # Fade in the new user container.
+      @$('ul li:last').hide().fadeIn()
+
+      # Change dates to use 'x time ago' format.
       @$('.humaneDate').humaneDates()
+
       @lastUserContainer = user.id
 
     # Add the message to the current user container.
