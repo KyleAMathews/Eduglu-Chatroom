@@ -6,12 +6,16 @@ class exports.SettingsView extends Backbone.View
   connection_status_message: (status) =>
     if status.get("connection_status") is "disconnected"
       @setDisconnected()
+      status.set( disconnected: true )
       @setMessage("You have lost connection with the chat room. Trying to reconnect.",
       0, 'warning')
 
-    if status.get("connection_status") is "connected"
-      @setMessage("You're connected!", 3, 'success')
+    # Only show connected message if this is a reconnection. Socket.io
+    # reconnection event isn't firing for some reason.
+    if status.get("connection_status") is "connected" and status.get("disconnected")
+      @setMessage("You're reconnected!", 3, 'success')
       @setConnected()
+      status.set( disconnected: false )
 
   setMessage: (message = '', seconds = 0, colorclass = 'success') ->
     if message is ''
