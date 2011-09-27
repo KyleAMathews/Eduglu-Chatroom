@@ -8,6 +8,7 @@ class exports.ChatsView extends Backbone.View
   lastUserContainer = 0
 
   initialize: ->
+    @bulkLoading = false
     @dateCount = 5
     @collection.bind('add', @addOne)
     @collection.bind('reset', @render)
@@ -15,12 +16,14 @@ class exports.ChatsView extends Backbone.View
   render: =>
     $(@el).html chatsTemplate()
     # Manually bind event as we're using a jQuery version older than 1.42 when
-    # $.delegate was added so we can use the normal backbone way of adding events.
+    # $.delegate was added so we can't use the normal backbone way of adding events.
     @$('.enter-chat').bind('keypress', (e) =>
       @sendChat(e)
     )
+    @bulkLoading = true
     @collection.each (chat) =>
       @addOne(chat)
+    @bulkLoading = false
 
     # Refresh dates every five seconds.
     setInterval((-> $('span.humaneDate').humaneDates()), 5000)
@@ -29,6 +32,16 @@ class exports.ChatsView extends Backbone.View
   addOne: (chat) =>
     view = new chatView( model: chat )
     user = app.collections.users.get(chat.get('uid'))
+    scrollDown = =>
+      unless @bulkLoading
+        # If within 10% of the bottom, scrolldown.
+        docHeight = $(document).height()
+        distanceToBottom = docHeight - ($(window).height() + $(window).scrollTop())
+        if distanceToBottom / docHeight <= .1
+          $('html, body').animate
+             scrollTop: $(document).height()-$(window).height(),
+             500
+
 
     # If user different than the last user, create a new user container.
     if chat.get('uid') isnt @lastUserContainer
@@ -51,7 +64,8 @@ class exports.ChatsView extends Backbone.View
       @lastUserContainer = user.id
 
     # Add the message to the current user container.
-    @$(".chat-messages").filter(":last").append( view.render().el )
+    @$(".chat-messages").filter(":last").append view.render().el
+    scrollDown()
     @
 
   sendChat: (e) =>
