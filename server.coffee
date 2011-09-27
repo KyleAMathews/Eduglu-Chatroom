@@ -121,9 +121,9 @@ io.sockets.on 'connection', (socket) ->
       unless res.group? and res.uid? then return
       socket.set('key', key)
       socket.join(res.group)
-      socket.emit 'set group', parseInt(res.group)
+      socket.emit 'set group', parseInt(res.group, 10)
 
-      socket.emit 'set uid', parseInt(res.uid)
+      socket.emit 'set uid', parseInt(res.uid, 10)
 
       # Add user to connected set in Redis.
       rclient.sadd('connected:' + res.group, res.uid)
@@ -141,7 +141,7 @@ io.sockets.on 'connection', (socket) ->
     socket.get 'key', (err, key) ->
       rclient.hgetall 'userkey:' + key, (err, res) ->
         # Inform everyone the user has left and remove them from redis.
-        io.sockets.in(res.group).emit 'leave', parseInt(res.uid)
+        io.sockets.in(res.group).emit 'leave', parseInt(res.uid, 10)
         rclient.srem('connected:' + res.group, res.uid)
         rclient.del('userkey:' + key)
 

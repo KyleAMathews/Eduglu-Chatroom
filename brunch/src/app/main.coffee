@@ -70,14 +70,14 @@ $(document).ready ->
     Drupal.settings.chatroom.group.nid = data
 
   socket.on 'chat', (data) ->
-    if parseInt(data.uid) isnt Drupal.settings.chatroom.currentUser
+    if parseInt(data.uid, 10) isnt Drupal.settings.chatroom.currentUser
       titleAlert(data.uid, data.body) if data.uid isnt Drupal.settings.chatroom.currentUser
     chat = new Chat( data )
     app.collections.chats.add(chat)
 
   socket.on 'join', (uids) ->
     for uid in uids
-      uid = parseInt(uid)
+      uid = parseInt(uid, 10)
       app.collections.users.get(uid).set( connected: true )
 
   socket.on 'leave', (uid) ->
@@ -88,7 +88,7 @@ $(document).ready ->
     app.collections.users.add(newUser)
 
   socket.on 'rem groupie', (data) ->
-    app.collections.users.remove(parseInt(data.uid))
+    app.collections.users.remove(parseInt(data.uid, 10))
 
 ################# Helper functions
 
