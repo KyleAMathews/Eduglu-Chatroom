@@ -35,6 +35,9 @@ $(document).ready ->
     app.collections.chats = new Chats()
     app.collections.chats.reset(Drupal.settings.chatroom.group.chats)
 
+    # Initialize ChatsView
+    app.views.chatsView = new ChatsView( collection: app.collections.chats )
+
     app.views.home = new HomeView( el: '#main-content' )
     app.routers.main.navigate 'home', true if Backbone.history.getFragment() is ''
 
@@ -49,10 +52,6 @@ $(document).ready ->
     'reconnection delay': 500,
     'max reconnection attempts': 20
   )
-  # TODO on disconnect, set some sort of message to let client know there's problems
-  # plus disable the chat box.
-  # Implement events disconnect, reconnect, reconnect_failed -- when disconnect
-  # disable. On reconnect, set message saying we're back on then fade off after 5 seconds.
 
   socket.on 'connect', ->
     app.settings.set(connection_status: 'connected')
@@ -89,6 +88,9 @@ $(document).ready ->
 
   socket.on 'rem groupie', (data) ->
     app.collections.users.remove(parseInt(data.uid, 10))
+
+  socket.on 'load older chats', (data) ->
+    app.collections.chats.addOlderChats(data)
 
 ################# Helper functions
 

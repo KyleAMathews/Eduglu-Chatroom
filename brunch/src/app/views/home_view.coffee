@@ -1,5 +1,4 @@
 homeTemplate = require('templates/home')
-ChatsView = require('views/chats_view').ChatsView
 ConnectedView = require('views/connected_view').ConnectedView
 
 class exports.HomeView extends Backbone.View
@@ -7,8 +6,14 @@ class exports.HomeView extends Backbone.View
 
   render: ->
     $(@el).html homeTemplate( name: Drupal.settings.chatroom.group.name )
-    chatsView = new ChatsView( collection: app.collections.chats )
-    $(@el).append chatsView.render().el
+    $(@el).append app.views.chatsView.render().el
     connectedView = new ConnectedView( collection: app.collections.users )
     connectedView.render()
+
+    # Load older chats
+    $('#load-older-chats').click( ->
+      socket.emit 'get older chats',
+        gid: Drupal.settings.chatroom.group.nid,
+        date: app.collections.chats.at(0).get('date')
+    )
     @

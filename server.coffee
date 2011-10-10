@@ -51,18 +51,6 @@ app.use express.methodOverride()
 app.use app.router
 app.use express.static __dirname + '/public'
 
-app.all '/chats', (req, res) ->
-  # A group id needs to be set
-  # TODO Check that this is the group the person has access to.
-  unless req.param('gid')? then return
-
-  # TODO figure out how to make this global, probably
-  # create a middleware thingy.
-  # This SO answer looks helpful - http://stackoverflow.com/questions/7067966/how-to-allow-cors-in-express-nodejs
-  res.header("Access-Control-Allow-Origin",
-    req.header('origin'))
-  res.header("Access-Control-Allow-Headers", "X-Requested-With")
-  res.header("X-Powered-By","nodejs")
 
 # Respond to directions from Drupal.
 app.post '/drupal', (req, res) ->
@@ -144,5 +132,19 @@ io.sockets.on 'connection', (socket) ->
         io.sockets.in(res.group).emit 'leave', parseInt(res.uid, 10)
         rclient.srem('connected:' + res.group, res.uid)
         rclient.del('userkey:' + key)
+
+  socket.on 'get older chats', (data) ->
+    # A group id needs to be set
+    # TODO Check that this is the group the person has access to.
+    unless data.gid? then return
+
+    myclient.query(
+      'SELECT * FROM eduglu_chatroom_chats
+        WHERE date < ? AND gid = ?
+        ORDER BY date DESC
+        LIMIT 100',
+      [data.date, data.gid], (err, results, fields) ->
+        socket.emit 'load older chats', results
+    )
 
 app.listen config.port

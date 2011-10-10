@@ -6,6 +6,11 @@
 @import "compass";
 
 .page-chatroom {
+  .button {
+    float:right;
+    margin-right: 40px;
+    @include trailer(1);
+  }
   $base-font-size: 13px;
   $base-line-height: 1.5 * $base-font-size;
   #context-links {

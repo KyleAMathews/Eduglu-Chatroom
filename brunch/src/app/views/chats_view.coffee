@@ -8,6 +8,7 @@ class exports.ChatsView extends Backbone.View
   lastUserContainer = 0
 
   initialize: ->
+    @lastUserContainerId = 0
     @bulkLoading = false
     @dateCount = 5
     @collection.bind('add', @addOne)
@@ -29,6 +30,10 @@ class exports.ChatsView extends Backbone.View
     setInterval((-> $('span.humaneDate').humaneDates()), 5000)
     @
 
+  prependOne: (chat) =>
+    chat.prepend = true
+    @addOne(chat)
+
   addOne: (chat) =>
     view = new chatView( model: chat )
     user = app.collections.users.get(chat.get('uid'))
@@ -42,9 +47,10 @@ class exports.ChatsView extends Backbone.View
              scrollTop: $(document).height()-$(window).height(),
              500
 
+    # Create a new user container if the user is different than the last user.
+    if parseInt(chat.get('uid'), 10) isnt parseInt(@currentUser, 10)
+      @lastUserContainerId++
 
-    # If user different than the last user, create a new user container.
-    if chat.get('uid') isnt @lastUserContainer
       # Only add the Date every five user containers.
       addDate = false
       if @dateCount is 5
@@ -53,7 +59,10 @@ class exports.ChatsView extends Backbone.View
       else
         @dateCount++
 
-      @$('ul').append(userContainerTemplate( user: user, addDate: addDate, date: chat.get("date")))
+      if chat.prepend?
+        @$('ul').prepend(userContainerTemplate( user: user, addDate: addDate, date: chat.get("date"), id: @lastUserContainerId))
+      else
+        @$('ul').append(userContainerTemplate( user: user, addDate: addDate, date: chat.get("date"), id: @lastUserContainerId))
 
       # Fade in the new user container.
       @$('ul li:last').hide().fadeIn()
@@ -61,10 +70,10 @@ class exports.ChatsView extends Backbone.View
       # Change dates to use 'x time ago' format.
       @$('.humaneDate').humaneDates()
 
-      @lastUserContainer = user.id
+      @currentUser = user.id
 
     # Add the message to the current user container.
-    @$(".chat-messages").filter(":last").append view.render().el
+    @$("#" + @lastUserContainerId).find('.chat-messages').append view.render().el
     scrollDown()
     @
 

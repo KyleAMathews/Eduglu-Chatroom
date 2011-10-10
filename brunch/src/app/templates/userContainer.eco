@@ -1,4 +1,4 @@
-<li class='user-container'>
+<li id='<%= @id %>' class='user-container'>
   <div class='user'>
     <%- @user.get("pic") %>
     <span class="name"><%= @user.get('shortname') %></span>
