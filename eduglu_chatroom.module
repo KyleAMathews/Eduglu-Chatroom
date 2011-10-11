@@ -131,7 +131,7 @@ function eduglu_chatroom_load() {
     'key' => $key,
   ));
 
-  return "connecting...";
+  return "<div id='chatroom-main-content'>connecting...</div>";
 }
 
 /*

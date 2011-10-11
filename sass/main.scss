@@ -19,7 +19,7 @@
   .feed-icon {
      display: none;
    }
-  #sidebar-right {
+  #block-boxes-chatroom_connected {
     @include leader(1);
     padding: 0;
     background: none;
@@ -44,7 +44,7 @@
       @include opacity(.4);
     }
   }
-  #main-content {
+  #chatroom-main-content {
     #chats {
       p {
         margin: 0;
@@ -96,8 +96,9 @@
       }
     }
     .enter-chat {
-      margin-left: 116px;
+      margin-left: 125px;
       width: 75%;
+      border: 1px solid;
     }
   }
 }

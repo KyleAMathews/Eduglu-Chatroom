@@ -38,7 +38,7 @@ $(document).ready ->
     # Initialize ChatsView
     app.views.chatsView = new ChatsView( collection: app.collections.chats )
 
-    app.views.home = new HomeView( el: '#main-content' )
+    app.views.home = new HomeView( el: '#chatroom-main-content' )
     app.routers.main.navigate 'home', true if Backbone.history.getFragment() is ''
 
   # Initialize the app.
@@ -151,8 +151,8 @@ titleAlert = (uid, body) ->
 # Keep sidebar blocks fixed when scrolling.
 a = () ->
   b = $(window).scrollTop()
-  d = $("#sidebar-right").offset({scroll:false}).top - 50
-  c = $("#sidebar-right > div")
+  d = $("#block-boxes-chatroom_connected").offset({scroll:false}).top - 50
+  c = $("#block-boxes-chatroom_connected > div")
   if b > d
     c.css( position:"fixed",top:"50px" )
   else if b <= d

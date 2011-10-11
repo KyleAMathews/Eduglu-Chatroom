@@ -8,7 +8,7 @@ class exports.ConnectedView extends Backbone.View
     @el = $('#block-boxes-chatroom_connected')
 
     # Set the width
-    $(@el).css('width', $("#sidebar-right").width())
+    # $(@el).css('width', $("#sidebar-right").width())
 
     $(@el).html(connectedTemplate())
 
