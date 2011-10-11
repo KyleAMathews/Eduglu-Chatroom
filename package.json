@@ -1,15 +1,17 @@
 {
-  "name"          : "Eduglu Chatroom",
+  "name"          : "eduglu_chatroom",
   "description"   : "Drupal chatroom",
   "author"        : "Kyle Mathews <mathews.kyle@gmail.com>",
   "contributors"  : [],
   "dependencies"  : {
+    "brunch"         : ">= 0.8.1",
     "express"        : ">= 2.3.10",
     "coffee-script"  : ">= 1.1.1",
     "redis"          : ">= 0.6.7",
     "socket.io"      : ">= 0.8.5",
     "elastical"      : ">= 0.0.2",
-    "mysql"          : ">= 0.9.4",
+    "validator"      : ">= 0.2.9",
+    "mysql"          : ">= 0.9.4"
   },
   "engines": { "node": ">= 0.4.1 < 0.5.0" },
   "lib"           : ".",
