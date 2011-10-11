@@ -54,12 +54,10 @@ function eduglu_chatroom_load() {
 
   # Todo once chats are stored in mysql, join that table as well to get all
   # additional ids that could of been used in the past.
-  $results = db_query("SELECT u.uid, u.picture as pic, r.realname as name
+  $results = db_query("SELECT u.uid, u.picture as pic, u.name
     FROM og_uid o
-    INNER JOIN realname r
     INNER JOIN users u
-    WHERE o.uid = r.uid
-    AND o.uid = u.uid
+    WHERE o.uid = u.uid
     AND o.nid = %d", $space->group->nid);
 
   $users = array();
@@ -67,8 +65,23 @@ function eduglu_chatroom_load() {
     $row->pic = _create_imagecache_url($row->uid, $row->pic,
       'chatroom_pic', 'connected-users');
     $row->id = $row->uid;
-    $users[] = $row;
+    $users[$row->id] = $row;
   }
+
+  // Replace name with name from the realname module if using that.
+  if (module_exists('realname')) {
+    $results = db_query("SELECT r.uid, r.realname
+      FROM og_uid o
+      INNER JOIN realname r
+      WHERE o.uid = r.uid
+      AND o.nid = %d", $space->group->nid);
+
+    while ($row = db_fetch_object($results)) {
+      dpm($row);
+      $users[$row->uid]->name = $row->realname;
+    }
+  }
+  $users = array_values($users);
 
   // Check if the current user is in the array. If not return,
   // you have to be a member of the group to chat.
@@ -84,6 +97,7 @@ function eduglu_chatroom_load() {
     return "You must join this group first before chatting.";
   }
 
+  // Load Settings + initial chat/user information.
   $key = rand(0, getrandmax());
   setcookie('rediskey', $key);
   $settings = array(
@@ -98,15 +112,19 @@ function eduglu_chatroom_load() {
     )
   );
 
+  drupal_add_js($settings, 'setting');
+
+  // Load CSS from Compass.
   drupal_add_css(drupal_get_path('module', 'eduglu_chatroom') . '/stylesheets/main.css', 'module');
+  // Load JS built by Brunch.
   drupal_add_js(drupal_get_path('module', 'eduglu_chatroom') . '/brunch/build/web/js/app.js', 'module');
+  // Required by Stitch to start.
   drupal_add_js("require('main')", 'inline');
+  // Load Socket.io.
   $load_socketio = '<script src="' . variable_get("eduglu_chatroom_nodejs_url", "http://localhost:3000") . '/socket.io/socket.io.js"></script>';
   drupal_set_html_head($load_socketio);
 
-  drupal_add_js($settings, 'setting');
-
-
+  // Authenticate this user to the Node.js server.
   eduglu_chatroom_post('newUser', array(
     'uid' => $user->uid,
     'group' => $space->group->nid,
@@ -119,7 +137,6 @@ function eduglu_chatroom_load() {
 /*
  * Function for posting info to node.js server.
  */
-// TODO move url to config page.
 function eduglu_chatroom_post($method, $data) {
   // Set some paramenters for sending request.
   $request_url = variable_get('eduglu_chatroom_nodejs_url', 'http://localhost:3000') . '/drupal';
@@ -142,29 +159,34 @@ function eduglu_chatroom_post($method, $data) {
 }
 
 function eduglu_chatroom_get_user($uid) {
-  static $user;
-  if (!isset($user)) {
+  static $account;
+  if (!isset($account)) {
     if ($cache = cache_get('user_data_' . $uid) && !empty($cache->data)) {
-      $user = unserialize($cache->data);
+      $account = unserialize($cache->data);
     }
     else {
-      $results = db_query("SELECT u.uid, u.picture as pic, r.realname as name
-        FROM realname r
-        INNER JOIN users u
-        WHERE r.uid = u.uid
-        AND u.uid = %d", $uid);
+      $results = db_query("SELECT u.uid, u.picture as pic, u.name
+        FROM users u
+        WHERE u.uid = %d", $uid);
 
-      $user = array();
+      $account = array();
       while ($row = db_fetch_object($results)) {
         $row->pic = _create_imagecache_url($row->uid, $row->pic,
           'chatroom_pic', 'connected-users');
         $row->id = $row->uid;
-        $user = $row;
+        $account = $row;
+      }
+
+      // Replace name with the name from the realname module if using that.
+      if (module_exists('realname')) {
+        $account->name = db_result(db_query("SELECT realname
+          FROM {realname}
+          WHERE uid = %d", $uid));
       }
     }
   }
 
-  return $user;
+  return $account;
 }
 
 /*
