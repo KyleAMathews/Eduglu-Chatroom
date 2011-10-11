@@ -65,7 +65,7 @@ function eduglu_chatroom_load() {
   $users = array();
   while ($row = db_fetch_object($results)) {
     $row->pic = _create_imagecache_url($row->uid, $row->pic,
-      '25x25_crop', 'connected-users');
+      'chatroom_pic', 'connected-users');
     $row->id = $row->uid;
     $users[] = $row;
   }
@@ -157,7 +157,7 @@ function eduglu_chatroom_get_user($uid) {
       $user = array();
       while ($row = db_fetch_object($results)) {
         $row->pic = _create_imagecache_url($row->uid, $row->pic,
-          '25x25_crop', 'connected-users');
+          'chatroom_pic', 'connected-users');
         $row->id = $row->uid;
         $user = $row;
       }
