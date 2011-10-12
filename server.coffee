@@ -35,10 +35,6 @@ myclient.query('USE ' + config.mysql.database)
 redis = require 'redis'
 rclient = redis.createClient()
 
-# Setup ElasticSearch client.
-elastical = require 'elastical'
-eclient = new elastical.Client()
-
 # Clear out connected data from Redis on reboot.
 rclient.keys("connected:*", (err, res) ->
   for key in res
@@ -97,9 +93,6 @@ io.sockets.on 'connection', (socket) ->
            SET uid = ?, gid = ?, date = ?, body = ?',
            [res.uid, res.group, data.date, data.body]
         )
-
-        # Index chats in ElasticSearch.
-        eclient.index('chatroom', 'chat', data)
 
   socket.on 'auth', (key) ->
     # Retrieve the user ID and group ID from Redis and
