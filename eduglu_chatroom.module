@@ -77,7 +77,6 @@ function eduglu_chatroom_load() {
       AND o.nid = %d", $space->group->nid);
 
     while ($row = db_fetch_object($results)) {
-      dpm($row);
       $users[$row->uid]->name = $row->realname;
     }
   }
@@ -138,6 +137,9 @@ function eduglu_chatroom_load() {
  * Function for posting info to node.js server.
  */
 function eduglu_chatroom_post($method, $data) {
+  // Make sure $data is an array.
+  $data = (array) $data;
+
   // Set some paramenters for sending request.
   $request_url = variable_get('eduglu_chatroom_nodejs_url', 'http://localhost:3000') . '/drupal';
   $request_headers = array('Content-Type' => 'application/json');
