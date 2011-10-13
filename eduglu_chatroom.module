@@ -264,3 +264,10 @@ function _create_imagecache_url($uid, $picture, $preset, $class = "") {
       'html' => true));
   }
 }
+
+/**
+* Implementation of hook_init().
+*/
+function eduglu_chatroom_init() {
+  drupal_add_css(drupal_get_path('module', 'eduglu_chatroom') .'/eduglu_chatroom.css');
+}
